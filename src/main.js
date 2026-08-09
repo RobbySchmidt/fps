@@ -88,6 +88,9 @@ function retry() {
   wanderer.reset();
   game.retry();
   hud.showDeath(false);
+  hud.setHealth(health.fraction());
+  hud.setAmmo(revolver.rounds(), revolver.capacity());
+  hud.setReloading(false);
   lock.request();
 }
 death.addEventListener('click', retry);
@@ -105,8 +108,8 @@ function setKey(code, down) {
 window.addEventListener('keydown', (e) => {
   if (e.repeat) return; // ignore OS auto-repeat so held keys don't re-fire toggles
   setKey(e.code, true);
-  if (e.code === 'Space' && lock.isLocked()) tryJump(player);
-  if (e.code === 'KeyR' && lock.isLocked()) revolver.startReload(elapsed);
+  if (e.code === 'Space' && lock.isLocked() && game.isPlaying()) tryJump(player);
+  if (e.code === 'KeyR' && lock.isLocked() && game.isPlaying()) revolver.startReload(elapsed);
 });
 window.addEventListener('keyup', (e) => setKey(e.code, false));
 window.addEventListener('blur', () => {
@@ -114,7 +117,7 @@ window.addEventListener('blur', () => {
 });
 
 function shoot() {
-  if (!lock.isLocked()) return;
+  if (!lock.isLocked() || !game.isPlaying()) return;
   if (!revolver.fire(elapsed)) return;
   raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
   const shootables = [...level.children, ...wanderer.hitMeshes];
