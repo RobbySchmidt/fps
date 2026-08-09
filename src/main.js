@@ -15,6 +15,7 @@ import { createEventBus } from './core/eventBus.js';
 import { createRevolver } from './weapons/revolver.js';
 import { createImpactPool } from './weapons/impacts.js';
 import { createMuzzleFlash } from './weapons/muzzleFlash.js';
+import { createHud } from './ui/hud.js';
 
 const canvas = document.getElementById('game');
 const overlay = document.getElementById('overlay');
@@ -34,6 +35,7 @@ const bus = createEventBus();
 const revolver = createRevolver();
 const impacts = createImpactPool(scene);
 const muzzleFlash = createMuzzleFlash(camera);
+const hud = createHud();
 const raycaster = new THREE.Raycaster();
 let elapsed = 0; // game-seconds; freezes while paused, so cooldowns pause too
 
@@ -94,6 +96,8 @@ const loop = createGameLoop((dt) => {
     player.z = next.z;
     stepVertical(player, dt);
     elapsed += dt;
+    hud.setReloading(revolver.isReloading(elapsed));
+    hud.setAmmo(revolver.rounds(), revolver.capacity());
   }
   camera.position.set(player.x, EYE_HEIGHT + player.y, player.z);
   camera.rotation.set(look.pitch, look.yaw, 0);

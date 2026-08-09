@@ -10,3 +10,14 @@ html, body { height: 100%; overflow: hidden; background: #05070a; }
 }
 #overlay[hidden] { display: none; }
 #overlay .hint { color: #6b7686; font-size: 0.85rem; }
+#hud { position: fixed; inset: 0; pointer-events: none; font-family: system-ui, sans-serif; }
+#crosshair {
+  position: absolute; left: 50%; top: 50%;
+  width: 5px; height: 5px; margin: -2.5px 0 0 -2.5px;
+  border-radius: 50%; background: rgba(207, 214, 228, 0.85);
+}
+#ammo {
+  position: absolute; right: 1.2rem; bottom: 1rem;
+  color: #cfd6e4; font-size: 1.1rem; letter-spacing: 0.1em;
+}
+#ammo.reloading { opacity: 0.45; }

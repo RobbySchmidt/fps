@@ -19,12 +19,15 @@ JavaScript. See `docs/superpowers/specs/` for the design and
 | WASD | Move |
 | Mouse | Look |
 | Shift | Sprint |
+| Space | Jump |
 | F | Flashlight on/off |
+| Left click | Fire revolver |
+| R | Reload |
 | Esc | Pause (releases the mouse) |
 
 ## Status
 
-Milestone 2 (art pass) complete: cel-shaded "dark ink & toon" look —
-toon-stepped lighting, screen-space ink outlines, film grain, vignette,
-cold-moonlight palette with a warm flashlight beam.
-Next: Milestone 3 — combat loop (first enemy + revolver).
+Milestone 3a (shooting core) complete: jump, revolver with raycast
+shooting, muzzle flash, wall impacts, 6-round cylinder + reload,
+crosshair/ammo HUD, and gunshot noise events on the new event bus.
+Next: Milestone 3b — the first enemy (the Wanderer) hunts by sound.
