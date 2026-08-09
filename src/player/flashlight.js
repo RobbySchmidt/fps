@@ -1,7 +1,8 @@
 import * as THREE from 'three';
+import { PALETTE } from '../rendering/palette.js';
 
 export function createFlashlight(camera) {
-  const light = new THREE.SpotLight(0xfff2d8, 8, 18, Math.PI / 7, 0.4, 1.2);
+  const light = new THREE.SpotLight(PALETTE.flashlight, 8, 18, Math.PI / 7, 0.4, 1.2);
   light.position.set(0.15, -0.1, 0); // slightly off-center, like a hand-held light
 
   const target = new THREE.Object3D();

@@ -9,6 +9,7 @@ import { setupPointerLock } from './player/pointerLock.js';
 import { computeWishDir, WALK_SPEED, SPRINT_SPEED } from './player/movement.js';
 import { createFlashlight } from './player/flashlight.js';
 import { createPostStack } from './rendering/postStack.js';
+import { PALETTE } from './rendering/palette.js';
 
 const canvas = document.getElementById('game');
 const overlay = document.getElementById('overlay');
@@ -17,7 +18,7 @@ const { renderer, scene, camera } = createScene(canvas);
 const parsed = parseMap(MAP);
 scene.add(buildGreybox(parsed));
 
-scene.add(new THREE.AmbientLight(0x27303f, 0.4)); // faint cold moonlight fill
+scene.add(new THREE.AmbientLight(PALETTE.ambient, 0.5));
 scene.add(camera); // the flashlight is a child of the camera
 const flashlight = createFlashlight(camera);
 const post = createPostStack(renderer, scene, camera);
