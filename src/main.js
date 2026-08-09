@@ -42,7 +42,7 @@ const revolver = createRevolver();
 const impacts = createImpactPool(scene);
 const muzzleFlash = createMuzzleFlash(camera);
 const hud = createHud();
-const perf = createPerfOverlay(renderer);
+const perf = createPerfOverlay();
 const wandererAI = createWandererAI({
   spawn: parsed.lamps[0],          // a lamp cell in a far room
   wallSet: parsed.wallSet,

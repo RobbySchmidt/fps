@@ -1,5 +1,5 @@
 // Debug performance overlay — hidden by default, toggle with P.
-export function createPerfOverlay(renderer) {
+export function createPerfOverlay() {
   const el = document.createElement('div');
   el.id = 'perf';
   el.style.cssText =
@@ -34,12 +34,10 @@ export function createPerfOverlay(renderer) {
         const heap = performance.memory ? performance.memory.usedJSHeapSize : 0;
         const heapDelta = heap - heapAtReport;
         heapAtReport = heap;
-        const info = renderer.info.render;
         if (!el.hidden) {
           el.textContent =
             `avg ${avg.toFixed(1)} ms  (${(1000 / avg).toFixed(0)} fps)\n` +
             `worst ${worstShown.toFixed(1)} ms\n` +
-            `draw calls ${info.calls}  tris ${(info.triangles / 1000).toFixed(1)}k\n` +
             (performance.memory
               ? `heap ${(heap / 1048576).toFixed(1)} MB (${heapDelta >= 0 ? '+' : ''}${(heapDelta / 1024).toFixed(0)} KB/0.5s)`
               : 'heap n/a');
