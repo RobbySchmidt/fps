@@ -8,4 +8,5 @@ export const PALETTE = {
   flashlight: 0xffe6b8, // warm hand-held beam
   ink: 0x05060a,        // outline color
   lamp: 0xffcf9e,       // warm lamp glow
+  impact: 0x101318,     // dark bullet mark
 };
