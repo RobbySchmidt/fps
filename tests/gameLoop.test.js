@@ -62,3 +62,16 @@ it('does not double-schedule when stop() then start() happens before a pending f
   timer.tick(0.016);
   expect(calls).toBe(3);
 });
+
+it('does not double-fire after two rapid stop/start cycles', () => {
+  const timer = makeFakeTimer();
+  let calls = 0;
+  const loop = createGameLoop(() => calls++, { now: timer.now, schedule: timer.schedule });
+  loop.start(); // queues a frame for generation 1
+  loop.stop();
+  loop.start(); // queues a frame for generation 2 — both are now pending
+  timer.tick(0.016); // both queued callbacks fire; only generation 2 may run
+  expect(calls).toBe(1);
+  timer.tick(0.016);
+  expect(calls).toBe(2);
+});

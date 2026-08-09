@@ -23,8 +23,9 @@ export function createGameLoop(update, options = {}) {
       if (running) return;
       running = true;
       generation += 1;
+      const gen = generation;
       last = now();
-      schedule(() => frame(generation));
+      schedule(() => frame(gen));
     },
     stop() {
       running = false;
