@@ -222,7 +222,15 @@ export function createWandererAI({ spawn, wallSet, waypoints, config = {} }) {
   }
 
   function hearNoise({ x, z, loudness = 1 }) {
-    if (state === 'dead' || state === 'chase' || state === 'windup' || state === 'attack') return;
+    if (
+      state === 'dead' ||
+      state === 'stagger' ||
+      state === 'chase' ||
+      state === 'windup' ||
+      state === 'attack'
+    ) {
+      return;
+    }
     if (Math.hypot(x - position.x, z - position.z) > cfg.hearingRange * loudness) return;
     noiseTarget = { x, z };
     setState('investigate');

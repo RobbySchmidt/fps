@@ -5,6 +5,7 @@ import { quantizeTime } from './movementStyle.js';
 
 const ANIMATION_FPS = 10; // everything else runs at 60: this is the "wrong" look
 const COLLAPSE_SPEED = 3.2;
+const FLASH_COLOR = new THREE.Color(0xffffff);
 
 function bodyPart(material, width, height, depth, x, y, z) {
   const mesh = new THREE.Mesh(new THREE.BoxGeometry(width, height, depth), material);
@@ -112,7 +113,7 @@ export function createWandererFigure() {
 
     if (flashAmount > 0) flashAmount = Math.max(0, flashAmount - dt * 6);
     skin.color.setHex(PALETTE.wanderer);
-    if (flashAmount > 0) skin.color.lerp(new THREE.Color(0xffffff), flashAmount);
+    if (flashAmount > 0) skin.color.lerp(FLASH_COLOR, flashAmount);
   }
 
   return {

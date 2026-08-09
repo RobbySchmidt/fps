@@ -156,6 +156,14 @@ it('stands perfectly still during the wind-up telegraph', () => {
   expect(ai.position()).toEqual(frozen);
 });
 
+it('a gunshot heard while staggering does not cancel the stagger', () => {
+  const ai = makeAI();
+  ai.takeHit({ damage: 30, from: far });
+  expect(ai.state()).toBe('stagger');
+  ai.hearNoise({ x: far.x, z: far.z, loudness: 1 }); // the shot that caused the hit
+  expect(ai.state()).toBe('stagger');
+});
+
 it('cannot wind up on a player it has no line of sight to', () => {
   // a wall cell at (4,2) between the Wanderer at (3,2) and the player at (5,2)
   const blocked = new Set([...wallSet, '4,2']);

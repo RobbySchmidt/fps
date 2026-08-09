@@ -82,6 +82,8 @@ function retry() {
   player.z = parsed.spawn.z;
   player.y = 0;
   player.vy = 0;
+  look.yaw = 0;
+  look.pitch = 0;
   health.reset();
   revolver.reset();
   wandererAI.reset();
@@ -91,6 +93,7 @@ function retry() {
   hud.setHealth(health.fraction());
   hud.setAmmo(revolver.rounds(), revolver.capacity());
   hud.setReloading(false);
+  overlay.hidden = false; // fallback if the lock request is rejected; onLocked hides it on success
   lock.request();
 }
 death.addEventListener('click', retry);
@@ -120,7 +123,9 @@ function shoot() {
   if (!lock.isLocked() || !game.isPlaying()) return;
   if (!revolver.fire(elapsed)) return;
   raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
-  const shootables = [...level.children, ...wanderer.hitMeshes];
+  const shootables = wandererAI.isDead()
+    ? [...level.children]
+    : [...level.children, ...wanderer.hitMeshes];
   const hits = raycaster.intersectObjects(shootables, false);
   if (hits.length > 0) {
     const hit = hits[0];
