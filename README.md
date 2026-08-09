@@ -24,6 +24,7 @@ JavaScript. See `docs/superpowers/specs/` for the design and
 
 ## Status
 
-Milestone 1 (grey-box mansion) complete: walkable tile-map mansion,
-pointer-lock FPS controls, wall collision with sliding, flashlight.
-Next: Milestone 2 — the "dark ink & toon" art pass.
+Milestone 2 (art pass) complete: cel-shaded "dark ink & toon" look —
+toon-stepped lighting, screen-space ink outlines, film grain, vignette,
+cold-moonlight palette with a warm flashlight beam.
+Next: Milestone 3 — combat loop (first enemy + revolver).
