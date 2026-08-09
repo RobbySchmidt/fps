@@ -30,11 +30,17 @@ function setKey(code, down) {
   if (code === 'KeyS') keys.back = down;
   if (code === 'KeyA') keys.left = down;
   if (code === 'KeyD') keys.right = down;
-  if (code === 'ShiftLeft') keys.sprint = down;
+  if (code === 'ShiftLeft' || code === 'ShiftRight') keys.sprint = down;
   if (code === 'KeyF' && down) flashlight.toggle();
 }
-window.addEventListener('keydown', (e) => setKey(e.code, true));
+window.addEventListener('keydown', (e) => {
+  if (e.repeat) return; // ignore OS auto-repeat so held keys don't re-fire toggles
+  setKey(e.code, true);
+});
 window.addEventListener('keyup', (e) => setKey(e.code, false));
+window.addEventListener('blur', () => {
+  for (const key of Object.keys(keys)) keys[key] = false;
+});
 
 const lock = setupPointerLock(canvas, {
   onLocked: () => { overlay.hidden = true; },

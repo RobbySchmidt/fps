@@ -13,7 +13,7 @@ export function setupPointerLock(element, { onLocked, onUnlocked, onMouseDelta }
   });
 
   return {
-    request: () => element.requestPointerLock(),
+    request: () => Promise.resolve(element.requestPointerLock()).catch(() => {}),
     isLocked,
   };
 }

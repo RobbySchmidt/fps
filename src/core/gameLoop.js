@@ -7,22 +7,24 @@ export function createGameLoop(update, options = {}) {
 
   let running = false;
   let last = 0;
+  let generation = 0;
 
-  function frame() {
-    if (!running) return;
+  function frame(gen) {
+    if (!running || gen !== generation) return;
     const t = now();
     const dt = Math.min(t - last, maxDelta);
     last = t;
     update(dt);
-    schedule(frame);
+    schedule(() => frame(gen));
   }
 
   return {
     start() {
       if (running) return;
       running = true;
+      generation += 1;
       last = now();
-      schedule(frame);
+      schedule(() => frame(generation));
     },
     stop() {
       running = false;

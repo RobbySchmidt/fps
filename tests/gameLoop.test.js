@@ -47,3 +47,18 @@ it('stops calling update after stop()', () => {
   timer.tick(0.016);
   expect(calls).toBe(1);
 });
+
+it('does not double-schedule when stop() then start() happens before a pending frame fires', () => {
+  const timer = makeFakeTimer();
+  let calls = 0;
+  const loop = createGameLoop(() => calls++, { now: timer.now, schedule: timer.schedule });
+  loop.start();
+  timer.tick(0.016); // one update; schedules the next (stale) frame
+  loop.stop();
+  loop.start(); // new generation; the still-queued stale frame from before stop() must be ignored
+  timer.tick(0.016); // fires both the stale frame and the fresh one
+  expect(calls).toBe(2);
+
+  timer.tick(0.016);
+  expect(calls).toBe(3);
+});

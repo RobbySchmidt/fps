@@ -34,3 +34,13 @@ it('ships a valid mansion MAP', () => {
   expect(parsed.walls.length).toBeGreaterThan(50);
   expect(parsed.spawn).toBeDefined();
 });
+
+it('parses identically when lines are joined with CRLF', () => {
+  const crlf = SMALL.split('\n').join('\r\n');
+  const lf = parseMap(SMALL);
+  const withCrlf = parseMap(crlf);
+  expect(withCrlf.cols).toBe(lf.cols);
+  expect(withCrlf.rows).toBe(lf.rows);
+  expect(withCrlf.walls).toEqual(lf.walls);
+  expect(withCrlf.spawn).toEqual(lf.spawn);
+});
