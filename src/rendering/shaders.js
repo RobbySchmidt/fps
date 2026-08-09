@@ -56,30 +56,20 @@ void main() {
 `,
 };
 
-// Film grain + vignette in one cheap pass.
-export const GrainVignetteShader = {
+// Gentle vignette — grain was removed after playtest feedback.
+export const VignetteShader = {
   uniforms: {
     tDiffuse: { value: null },
-    time: { value: 0 },
-    grainAmount: { value: 0.05 },
-    vignetteStrength: { value: 0.45 },
+    vignetteStrength: { value: 0.35 },
   },
   vertexShader: FULLSCREEN_VERTEX,
   fragmentShader: /* glsl */ `
 uniform sampler2D tDiffuse;
-uniform float time;
-uniform float grainAmount;
 uniform float vignetteStrength;
 varying vec2 vUv;
 
-float rand(vec2 co) {
-  return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
-}
-
 void main() {
   vec4 color = texture2D(tDiffuse, vUv);
-  float grain = (rand(vUv * (1.0 + fract(time))) - 0.5) * grainAmount;
-  color.rgb += grain;
   vec2 centered = vUv - 0.5;
   float vignette = 1.0 - vignetteStrength * dot(centered, centered) * 2.0;
   color.rgb *= vignette;

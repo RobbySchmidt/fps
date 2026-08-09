@@ -7,7 +7,7 @@ export function createScene(canvas) {
 
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(PALETTE.background);
-  scene.fog = new THREE.Fog(PALETTE.background, 2, 26);
+  scene.fog = new THREE.Fog(PALETTE.background, 3, 34);
 
   const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 100);
   camera.rotation.order = 'YXZ'; // yaw (Y) then pitch (X) — FPS convention

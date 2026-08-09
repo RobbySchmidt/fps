@@ -3,7 +3,7 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-import { InkEdgeShader, GrainVignetteShader } from './shaders.js';
+import { InkEdgeShader, VignetteShader } from './shaders.js';
 import { PALETTE } from './palette.js';
 
 export function createPostStack(renderer, scene, camera) {
@@ -25,8 +25,8 @@ export function createPostStack(renderer, scene, camera) {
   edgePass.uniforms.inkColor.value.setHex(PALETTE.ink);
   composer.addPass(edgePass);
 
-  const grainPass = new ShaderPass(GrainVignetteShader);
-  composer.addPass(grainPass);
+  const vignettePass = new ShaderPass(VignetteShader);
+  composer.addPass(vignettePass);
 
   composer.addPass(new OutputPass());
 
@@ -40,7 +40,6 @@ export function createPostStack(renderer, scene, camera) {
 
   return {
     render(dt) {
-      grainPass.uniforms.time.value = (grainPass.uniforms.time.value + dt) % 1000.0;
       renderer.setRenderTarget(depthTarget);
       renderer.render(scene, camera); // depth pre-pass (scene is small; one extra render is fine at this scale)
       renderer.setRenderTarget(null);

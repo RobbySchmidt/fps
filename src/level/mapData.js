@@ -1,21 +1,21 @@
 export const CELL = 2; // meters per grid cell
 
-// Legend: '#' wall, '.' floor, 'D' doorway (floor), 'S' spawn (floor).
+// Legend: '#' wall, '.' floor, 'D' doorway (floor), 'S' spawn (floor), 'L' lamp (floor).
 // Six rooms along the top and middle, one grand hall at the bottom.
 export const MAP = `
 ########################
 #......#........#......#
-#......#........#......#
+#......#...L....#..L...#
 #......D........D......#
 #......#........#......#
 ####D######DD######D####
 #........#......#......#
-#........#......#......#
+#...L....#......#..L...#
 #........D......D......#
 #........#......#......#
 #####D##########D#######
 #......................#
-#..........S...........#
+#....L......S.....L....#
 #......................#
 ########################
 `;
@@ -27,6 +27,7 @@ export function parseMap(text) {
 
   const walls = [];
   const wallSet = new Set();
+  const lamps = [];
   let spawn = null;
 
   lines.forEach((line, r) => {
@@ -36,6 +37,8 @@ export function parseMap(text) {
         wallSet.add(`${c},${r}`);
       } else if (ch === 'S') {
         spawn = { x: c * CELL, z: r * CELL };
+      } else if (ch === 'L') {
+        lamps.push({ x: c * CELL, z: r * CELL });
       }
     });
   });
@@ -43,5 +46,5 @@ export function parseMap(text) {
   if (!spawn) throw new Error('Map has no spawn point (S)');
 
   const cols = Math.max(...lines.map((l) => l.length));
-  return { walls, wallSet, spawn, cols, rows: lines.length };
+  return { walls, wallSet, spawn, lamps, cols, rows: lines.length };
 }

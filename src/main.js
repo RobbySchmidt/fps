@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { createScene } from './rendering/scene.js';
 import { MAP, parseMap } from './level/mapData.js';
 import { buildGreybox } from './level/buildGreybox.js';
+import { buildLamps } from './level/buildLamps.js';
 import { moveWithCollision } from './level/collision.js';
 import { createGameLoop } from './core/gameLoop.js';
 import { createLook, applyLookDelta } from './player/look.js';
@@ -17,8 +18,9 @@ const { renderer, scene, camera } = createScene(canvas);
 
 const parsed = parseMap(MAP);
 scene.add(buildGreybox(parsed));
+scene.add(buildLamps(parsed));
 
-scene.add(new THREE.AmbientLight(PALETTE.ambient, 0.5));
+scene.add(new THREE.AmbientLight(PALETTE.ambient, 0.85));
 scene.add(camera); // the flashlight is a child of the camera
 const flashlight = createFlashlight(camera);
 const post = createPostStack(renderer, scene, camera);

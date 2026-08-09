@@ -44,3 +44,13 @@ it('parses identically when lines are joined with CRLF', () => {
   expect(withCrlf.walls).toEqual(lf.walls);
   expect(withCrlf.spawn).toEqual(lf.spawn);
 });
+
+it('collects lamp positions as walkable floor', () => {
+  const parsed = parseMap('#####\n#S.L#\n#####');
+  expect(parsed.lamps).toEqual([{ x: 3 * CELL, z: 1 * CELL }]);
+  expect(parsed.wallSet.has('3,1')).toBe(false);
+});
+
+it('mansion MAP has six lamps', () => {
+  expect(parseMap(MAP).lamps.length).toBe(6);
+});
