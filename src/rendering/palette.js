@@ -9,4 +9,6 @@ export const PALETTE = {
   ink: 0x05060a,        // outline color
   lamp: 0xffcf9e,       // warm lamp glow
   impact: 0x101318,     // dark bullet mark
+  wanderer: 0x0d1014,   // near-black body: reads as a silhouette with ink outlines
+  wandererEye: 0xdfe8ff, // pale, cold eyes
 };
