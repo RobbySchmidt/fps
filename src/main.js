@@ -8,6 +8,7 @@ import { createLook, applyLookDelta } from './player/look.js';
 import { setupPointerLock } from './player/pointerLock.js';
 import { computeWishDir, WALK_SPEED, SPRINT_SPEED } from './player/movement.js';
 import { createFlashlight } from './player/flashlight.js';
+import { createPostStack } from './rendering/postStack.js';
 
 const canvas = document.getElementById('game');
 const overlay = document.getElementById('overlay');
@@ -19,6 +20,7 @@ scene.add(buildGreybox(parsed));
 scene.add(new THREE.AmbientLight(0x27303f, 0.4)); // faint cold moonlight fill
 scene.add(camera); // the flashlight is a child of the camera
 const flashlight = createFlashlight(camera);
+const post = createPostStack(renderer, scene, camera);
 
 const EYE_HEIGHT = 1.7;
 const player = { x: parsed.spawn.x, z: parsed.spawn.z };
@@ -59,6 +61,6 @@ const loop = createGameLoop((dt) => {
   }
   camera.position.set(player.x, EYE_HEIGHT, player.z);
   camera.rotation.set(look.pitch, look.yaw, 0);
-  renderer.render(scene, camera);
+  post.render(dt);
 });
 loop.start();
