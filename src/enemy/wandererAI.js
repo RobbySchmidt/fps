@@ -7,12 +7,16 @@ export const WANDERER_CONFIG = {
   radius: 0.45,
   patrolSpeed: 1.8,
   investigateSpeed: 3.0,
-  chaseSpeed: 7.5,          // faster than the player's 5.5 sprint: it cannot be outrun
+  // Burst speed, reduced by the burst-freeze duty cycle (0.55/(0.55+0.25) ≈ 0.6875)
+  // and by the serpentine weave's forward component (≈0.82 at peak weave), must still
+  // net faster than the player's 5.5 sprint: 11 * 0.6875 * 0.82 ≈ 6.2 > 5.5.
+  chaseSpeed: 11,
   sightRange: 14,
   sightHalfAngle: (50 * Math.PI) / 180,
   proximityRange: 3.5,      // senses the player this close regardless of facing
   hearingRange: 30,         // multiplied by a noise's loudness
   meleeRange: 1.9,
+  attackReachBonus: 0.6,    // extra reach forgiveness when the swipe actually lands
   windupTime: 0.45,         // the telegraph: all jitter stops
   attackTime: 0.25,
   recoverTime: 0.5,
@@ -20,6 +24,7 @@ export const WANDERER_CONFIG = {
   knockback: 0.45,
   loseSightTime: 6,
   investigateTime: 4,
+  investigateTimeout: 12,   // give up even if the noise position is never reachable
   repathInterval: 0.4,
   arriveRadius: 0.35,
   waypointRadius: 0.8,
@@ -58,12 +63,15 @@ export function createWandererAI({ spawn, wallSet, waypoints, config = {} }) {
     state = next;
     stateTime = 0;
     if (next === 'attack') swingSpent = false;
-    if (next === 'patrol' || next === 'investigate' || next === 'chase') path = [];
+    if (next === 'patrol' || next === 'investigate' || next === 'chase') {
+      path = [];
+      repathTimer = 0; // repath once on entry, then honour the interval
+    }
   }
 
   function stepToward(goal, speed, dt, serpentine) {
     repathTimer -= dt;
-    if (repathTimer <= 0 || path.length === 0) {
+    if (repathTimer <= 0) {
       repathTimer = cfg.repathInterval;
       const route = findPath(
         worldToCell(position.x, position.z),
@@ -130,7 +138,12 @@ export function createWandererAI({ spawn, wallSet, waypoints, config = {} }) {
     if (state === 'attack') {
       if (!swingSpent) {
         swingSpent = true;
-        if (distance <= cfg.meleeRange + 0.6) events.attacked = true;
+        if (
+          distance <= cfg.meleeRange + cfg.attackReachBonus &&
+          hasLineOfSight(position, player, wallSet)
+        ) {
+          events.attacked = true;
+        }
       }
       if (stateTime >= cfg.attackTime + cfg.recoverTime) setState('chase');
       return events;
@@ -146,7 +159,7 @@ export function createWandererAI({ spawn, wallSet, waypoints, config = {} }) {
     }
 
     if (state === 'chase') {
-      if (distance <= cfg.meleeRange) {
+      if (distance <= cfg.meleeRange && hasLineOfSight(position, player, wallSet)) {
         setState('windup');
         return events;
       }
@@ -159,6 +172,10 @@ export function createWandererAI({ spawn, wallSet, waypoints, config = {} }) {
     }
 
     if (state === 'investigate') {
+      if (stateTime >= cfg.investigateTimeout) {
+        setState('patrol'); // give up even if the noise was never reachable
+        return events;
+      }
       const reached =
         !noiseTarget ||
         Math.hypot(noiseTarget.x - position.x, noiseTarget.z - position.z) <= cfg.waypointRadius;

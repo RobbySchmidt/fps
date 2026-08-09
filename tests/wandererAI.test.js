@@ -58,7 +58,7 @@ it('ignores a quiet noise from far away', () => {
 
 it('chases a player it can see and closes the distance', () => {
   const ai = makeAI();
-  const player = { x: 5 * CELL, z: 2 * CELL }; // straight ahead down the row
+  const player = { x: 7 * CELL, z: 2 * CELL }; // far enough that 0.5s of chasing does not reach melee range
   const startDistance = Math.hypot(player.x - spawn.x, player.z - spawn.z);
   run(ai, 0.5, player);
   expect(ai.state()).toBe('chase');
@@ -112,11 +112,11 @@ it('a dead Wanderer stops moving and cannot attack', () => {
 
 it('gives up and returns to patrol after losing the player for long enough', () => {
   const ai = makeAI();
-  const seen = { x: 5 * CELL, z: 2 * CELL };
+  const seen = { x: 7 * CELL, z: 2 * CELL };
   run(ai, 0.5, seen);
   expect(ai.state()).toBe('chase');
   // teleport the player somewhere it cannot see and wait out the timer
-  run(ai, WANDERER_CONFIG.loseSightTime + 1, { x: 1000, z: 1000 });
+  run(ai, WANDERER_CONFIG.loseSightTime + 4, { x: 1000, z: 1000 });
   expect(ai.state()).toBe('patrol');
 });
 
@@ -128,4 +128,43 @@ it('reset returns it to the spawn, full health and patrolling', () => {
   expect(ai.state()).toBe('patrol');
   expect(ai.health()).toBe(WANDERER_CONFIG.maxHealth);
   expect(ai.position()).toEqual(spawn);
+});
+
+it('chase speed outpaces the player sprint even with burst-freeze and weaving', () => {
+  const dutyCycle = 0.55 / (0.55 + 0.25);          // burstFreezeFactor defaults
+  const worstCaseWeave = 1 / Math.hypot(1, 0.7);   // forward component at peak weave
+  expect(WANDERER_CONFIG.chaseSpeed * dutyCycle * worstCaseWeave).toBeGreaterThan(5.5);
+});
+
+it('gives up investigating a noise it can never reach', () => {
+  const ai = makeAI();
+  ai.hearNoise({ x: 0, z: 0, loudness: 1 }); // inside a wall cell: unreachable
+  expect(ai.state()).toBe('investigate');
+  run(ai, WANDERER_CONFIG.investigateTimeout + 1, far);
+  expect(ai.state()).toBe('patrol');
+});
+
+it('stands perfectly still during the wind-up telegraph', () => {
+  const ai = makeAI();
+  const player = { x: 3 * CELL, z: 2 * CELL };
+  let guard = 0;
+  while (ai.state() !== 'windup' && guard++ < 600) ai.update(1 / 60, player);
+  expect(ai.state()).toBe('windup');
+  const frozen = ai.position();
+  ai.update(1 / 60, player);
+  ai.update(1 / 60, player);
+  expect(ai.position()).toEqual(frozen);
+});
+
+it('cannot wind up on a player it has no line of sight to', () => {
+  // a wall cell at (4,2) between the Wanderer at (3,2) and the player at (5,2)
+  const blocked = new Set([...wallSet, '4,2']);
+  const ai = createWandererAI({
+    spawn: { x: 3 * CELL, z: 2 * CELL },
+    wallSet: blocked,
+    waypoints,
+  });
+  const player = { x: 5 * CELL, z: 2 * CELL };
+  run(ai, 1, player);
+  expect(['windup', 'attack']).not.toContain(ai.state());
 });
