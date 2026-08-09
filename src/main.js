@@ -7,7 +7,7 @@ import { moveWithCollision } from './level/collision.js';
 import { createGameLoop } from './core/gameLoop.js';
 import { createLook, applyLookDelta } from './player/look.js';
 import { setupPointerLock } from './player/pointerLock.js';
-import { computeWishDir, WALK_SPEED, SPRINT_SPEED } from './player/movement.js';
+import { computeWishDir, WALK_SPEED, SPRINT_SPEED, tryJump, stepVertical } from './player/movement.js';
 import { createFlashlight } from './player/flashlight.js';
 import { createPostStack } from './rendering/postStack.js';
 import { PALETTE } from './rendering/palette.js';
@@ -26,7 +26,7 @@ const flashlight = createFlashlight(camera);
 const post = createPostStack(renderer, scene, camera);
 
 const EYE_HEIGHT = 1.7;
-const player = { x: parsed.spawn.x, z: parsed.spawn.z };
+const player = { x: parsed.spawn.x, z: parsed.spawn.z, y: 0, vy: 0 };
 const look = createLook();
 const keys = { forward: false, back: false, left: false, right: false, sprint: false };
 
@@ -41,6 +41,7 @@ function setKey(code, down) {
 window.addEventListener('keydown', (e) => {
   if (e.repeat) return; // ignore OS auto-repeat so held keys don't re-fire toggles
   setKey(e.code, true);
+  if (e.code === 'Space' && lock.isLocked()) tryJump(player);
 });
 window.addEventListener('keyup', (e) => setKey(e.code, false));
 window.addEventListener('blur', () => {
@@ -61,8 +62,9 @@ const loop = createGameLoop((dt) => {
     const next = moveWithCollision(player, wish.x * speed * dt, wish.z * speed * dt, parsed.wallSet);
     player.x = next.x;
     player.z = next.z;
+    stepVertical(player, dt);
   }
-  camera.position.set(player.x, EYE_HEIGHT, player.z);
+  camera.position.set(player.x, EYE_HEIGHT + player.y, player.z);
   camera.rotation.set(look.pitch, look.yaw, 0);
   post.render(dt);
 });
