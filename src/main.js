@@ -16,6 +16,7 @@ import { createRevolver } from './weapons/revolver.js';
 import { createImpactPool } from './weapons/impacts.js';
 import { createMuzzleFlash } from './weapons/muzzleFlash.js';
 import { createHud } from './ui/hud.js';
+import { createPerfOverlay } from './ui/perfOverlay.js';
 import { createWandererAI } from './enemy/wandererAI.js';
 import { createWandererFigure } from './enemy/wandererFigure.js';
 import { createHealth } from './player/health.js';
@@ -41,6 +42,7 @@ const revolver = createRevolver();
 const impacts = createImpactPool(scene);
 const muzzleFlash = createMuzzleFlash(camera);
 const hud = createHud();
+const perf = createPerfOverlay(renderer);
 const wandererAI = createWandererAI({
   spawn: parsed.lamps[0],          // a lamp cell in a far room
   wallSet: parsed.wallSet,
@@ -113,6 +115,7 @@ window.addEventListener('keydown', (e) => {
   setKey(e.code, true);
   if (e.code === 'Space' && lock.isLocked() && game.isPlaying()) tryJump(player);
   if (e.code === 'KeyR' && lock.isLocked() && game.isPlaying()) revolver.startReload(elapsed);
+  if (e.code === 'KeyP') perf.toggle();
 });
 window.addEventListener('keyup', (e) => setKey(e.code, false));
 window.addEventListener('blur', () => {
@@ -191,5 +194,6 @@ const loop = createGameLoop((dt) => {
     dt,
   });
   post.render(dt);
+  perf.tick();
 });
 loop.start();
