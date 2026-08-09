@@ -4,6 +4,7 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { InkEdgeShader, GrainVignetteShader } from './shaders.js';
+import { PALETTE } from './palette.js';
 
 export function createPostStack(renderer, scene, camera) {
   const pixelRatio = renderer.getPixelRatio();
@@ -21,6 +22,7 @@ export function createPostStack(renderer, scene, camera) {
   edgePass.uniforms.resolution.value.set(size.x * pixelRatio, size.y * pixelRatio);
   edgePass.uniforms.cameraNear.value = camera.near;
   edgePass.uniforms.cameraFar.value = camera.far;
+  edgePass.uniforms.inkColor.value.setHex(PALETTE.ink);
   composer.addPass(edgePass);
 
   const grainPass = new ShaderPass(GrainVignetteShader);
