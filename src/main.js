@@ -16,6 +16,8 @@ import { createRevolver } from './weapons/revolver.js';
 import { createImpactPool } from './weapons/impacts.js';
 import { createMuzzleFlash } from './weapons/muzzleFlash.js';
 import { createHud } from './ui/hud.js';
+import { createWandererAI } from './enemy/wandererAI.js';
+import { createWandererFigure } from './enemy/wandererFigure.js';
 
 const canvas = document.getElementById('game');
 const overlay = document.getElementById('overlay');
@@ -36,12 +38,33 @@ const revolver = createRevolver();
 const impacts = createImpactPool(scene);
 const muzzleFlash = createMuzzleFlash(camera);
 const hud = createHud();
+const wandererAI = createWandererAI({
+  spawn: parsed.lamps[0],          // a lamp cell in a far room
+  wallSet: parsed.wallSet,
+  waypoints: parsed.lamps,          // one waypoint per room, already spread out
+});
+const wanderer = createWandererFigure();
+scene.add(wanderer.group);
+bus.on('noise', (noise) => wandererAI.hearNoise(noise));
 const raycaster = new THREE.Raycaster();
 let elapsed = 0; // game-seconds; freezes while paused, so cooldowns pause too
+let sprintNoiseTimer = 0;
 
 const EYE_HEIGHT = 1.7;
+const VIEW_KICK = -12; // mouse-delta units fed to applyLookDelta on each shot
+const BODY_DAMAGE = 30;
+const SPRINT_NOISE = 0.25;         // quieter than a gunshot, so sprinting carries less far
+const SPRINT_NOISE_INTERVAL = 0.35; // seconds between sprint noise pulses
 const player = { x: parsed.spawn.x, z: parsed.spawn.z, y: 0, vy: 0 };
 const look = createLook();
+
+const lock = setupPointerLock(canvas, {
+  onLocked: () => { overlay.hidden = true; },
+  onUnlocked: () => { overlay.hidden = false; },
+  onMouseDelta: (dx, dy) => applyLookDelta(look, dx, dy),
+});
+overlay.addEventListener('click', () => lock.request());
+
 const keys = { forward: false, back: false, left: false, right: false, sprint: false };
 
 function setKey(code, down) {
@@ -67,25 +90,28 @@ function shoot() {
   if (!lock.isLocked()) return;
   if (!revolver.fire(elapsed)) return;
   raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
-  const hits = raycaster.intersectObjects(level.children, false);
+  const shootables = [...level.children, ...wanderer.hitMeshes];
+  const hits = raycaster.intersectObjects(shootables, false);
   if (hits.length > 0) {
-    const worldNormal = hits[0].face.normal.clone().transformDirection(hits[0].object.matrixWorld);
-    impacts.spawn(hits[0].point, worldNormal);
+    const hit = hits[0];
+    const part = hit.object.userData.wandererPart;
+    if (part && !wandererAI.isDead()) {
+      const headshot = part === 'head';
+      wandererAI.takeHit({ damage: BODY_DAMAGE, headshot, from: { x: player.x, z: player.z } });
+      wanderer.flash();
+      hud.hitMarker(headshot ? 'head' : 'body');
+    } else if (!part) {
+      const worldNormal = hit.face.normal.clone().transformDirection(hit.object.matrixWorld);
+      impacts.spawn(hit.point, worldNormal);
+    }
   }
   muzzleFlash.trigger();
-  applyLookDelta(look, 0, -12); // small upward view kick
+  applyLookDelta(look, 0, VIEW_KICK);
   bus.emit('noise', { x: player.x, z: player.z, loudness: 1 });
 }
 window.addEventListener('mousedown', (e) => {
   if (e.button === 0) shoot();
 });
-
-const lock = setupPointerLock(canvas, {
-  onLocked: () => { overlay.hidden = true; },
-  onUnlocked: () => { overlay.hidden = false; },
-  onMouseDelta: (dx, dy) => applyLookDelta(look, dx, dy),
-});
-overlay.addEventListener('click', () => lock.request());
 
 const loop = createGameLoop((dt) => {
   if (lock.isLocked()) {
@@ -96,12 +122,25 @@ const loop = createGameLoop((dt) => {
     player.z = next.z;
     stepVertical(player, dt);
     elapsed += dt;
+    sprintNoiseTimer -= dt;
+    if (keys.sprint && (wish.x !== 0 || wish.z !== 0) && sprintNoiseTimer <= 0) {
+      sprintNoiseTimer = SPRINT_NOISE_INTERVAL;
+      bus.emit('noise', { x: player.x, z: player.z, loudness: SPRINT_NOISE });
+    }
+    wandererAI.update(dt, player);
     hud.setReloading(revolver.isReloading(elapsed));
     hud.setAmmo(revolver.rounds(), revolver.capacity());
   }
   camera.position.set(player.x, EYE_HEIGHT + player.y, player.z);
   camera.rotation.set(look.pitch, look.yaw, 0);
   muzzleFlash.update(dt);
+  wanderer.update({
+    state: wandererAI.state(),
+    position: wandererAI.position(),
+    facing: wandererAI.facing(),
+    time: elapsed,
+    dt,
+  });
   post.render(dt);
 });
 loop.start();
