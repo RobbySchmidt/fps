@@ -7,6 +7,7 @@ import { createGameLoop } from './core/gameLoop.js';
 import { createLook, applyLookDelta } from './player/look.js';
 import { setupPointerLock } from './player/pointerLock.js';
 import { computeWishDir, WALK_SPEED, SPRINT_SPEED } from './player/movement.js';
+import { createFlashlight } from './player/flashlight.js';
 
 const canvas = document.getElementById('game');
 const overlay = document.getElementById('overlay');
@@ -15,8 +16,9 @@ const { renderer, scene, camera } = createScene(canvas);
 const parsed = parseMap(MAP);
 scene.add(buildGreybox(parsed));
 
-// Temporary bright lighting so the grey-box is inspectable; dimmed in the flashlight task.
-scene.add(new THREE.AmbientLight(0xffffff, 1.2));
+scene.add(new THREE.AmbientLight(0x27303f, 0.4)); // faint cold moonlight fill
+scene.add(camera); // the flashlight is a child of the camera
+const flashlight = createFlashlight(camera);
 
 const EYE_HEIGHT = 1.7;
 const player = { x: parsed.spawn.x, z: parsed.spawn.z };
@@ -29,6 +31,7 @@ function setKey(code, down) {
   if (code === 'KeyA') keys.left = down;
   if (code === 'KeyD') keys.right = down;
   if (code === 'ShiftLeft') keys.sprint = down;
+  if (code === 'KeyF' && down) flashlight.toggle();
 }
 window.addEventListener('keydown', (e) => setKey(e.code, true));
 window.addEventListener('keyup', (e) => setKey(e.code, false));
