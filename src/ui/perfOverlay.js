@@ -1,4 +1,4 @@
-// TEMPORARY diagnostic overlay for the M3b stutter investigation. Toggle with P.
+// Debug performance overlay — hidden by default, toggle with P.
 export function createPerfOverlay(renderer) {
   const el = document.createElement('div');
   el.id = 'perf';

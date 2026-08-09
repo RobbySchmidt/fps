@@ -70,10 +70,9 @@ export function hasLineOfSight(from, to, wallSet, cell = CELL) {
   const steps = Math.ceil(distance / (cell * 0.25));
   for (let i = 1; i <= steps; i++) {
     const t = i / steps;
-    const x = from.x + (to.x - from.x) * t;
-    const z = from.z + (to.z - from.z) * t;
-    const { c, r } = worldToCell(x, z, cell);
-    if (wallSet.has(`${c},${r}`)) return false;
+    const c = Math.round((from.x + (to.x - from.x) * t) / cell);
+    const r = Math.round((from.z + (to.z - from.z) * t) / cell);
+    if (wallSet.has(c + ',' + r)) return false;
   }
   return true;
 }
