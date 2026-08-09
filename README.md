@@ -27,7 +27,9 @@ JavaScript. See `docs/superpowers/specs/` for the design and
 
 ## Status
 
-Milestone 3a (shooting core) complete: jump, revolver with raycast
-shooting, muzzle flash, wall impacts, 6-round cylinder + reload,
-crosshair/ammo HUD, and gunshot noise events on the new event bus.
-Next: Milestone 3b — the first enemy (the Wanderer) hunts by sound.
+Milestone 3b (the Wanderer) complete: a mantis-bladed monster hunts the
+mansion with A* pathfinding, hears gunshots and sprinting, charges in
+stop-motion jitter, and telegraphs its strike by going utterly still.
+Shoot it to stagger it; four body shots or one headshot kill it. The player
+has health with regeneration, a death screen and instant retry.
+Next: Milestone 4 — content (keys, second enemy, shotgun, pickups, basement).
