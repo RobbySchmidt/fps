@@ -66,7 +66,10 @@ function shoot() {
   if (!revolver.fire(elapsed)) return;
   raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
   const hits = raycaster.intersectObjects(level.children, false);
-  if (hits.length > 0) impacts.spawn(hits[0].point, hits[0].face.normal);
+  if (hits.length > 0) {
+    const worldNormal = hits[0].face.normal.clone().transformDirection(hits[0].object.matrixWorld);
+    impacts.spawn(hits[0].point, worldNormal);
+  }
   muzzleFlash.trigger();
   applyLookDelta(look, 0, -12); // small upward view kick
   bus.emit('noise', { x: player.x, z: player.z, loudness: 1 });

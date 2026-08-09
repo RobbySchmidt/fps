@@ -18,3 +18,11 @@ it('offsets the mark along the surface normal', () => {
   const mesh = pool.spawn(new THREE.Vector3(1, 2, 3), new THREE.Vector3(0, 0, 1));
   expect(mesh.position.z).toBeCloseTo(3.01);
 });
+
+it('offsets floor marks upward for an up-facing normal', () => {
+  const parent = new THREE.Group();
+  const pool = createImpactPool(parent, 3);
+  const mesh = pool.spawn(new THREE.Vector3(4, 0, 6), new THREE.Vector3(0, 1, 0));
+  expect(mesh.position.y).toBeCloseTo(0.01);
+  expect(mesh.position.x).toBeCloseTo(4);
+});
