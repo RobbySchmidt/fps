@@ -18,6 +18,9 @@ import { createMuzzleFlash } from './weapons/muzzleFlash.js';
 import { createHud } from './ui/hud.js';
 import { createWandererAI } from './enemy/wandererAI.js';
 import { createWandererFigure } from './enemy/wandererFigure.js';
+import { createHealth } from './player/health.js';
+import { createGameState } from './core/gameState.js';
+import { createScreenShake } from './rendering/screenShake.js';
 
 const canvas = document.getElementById('game');
 const overlay = document.getElementById('overlay');
@@ -47,6 +50,9 @@ const wanderer = createWandererFigure();
 scene.add(wanderer.group);
 bus.on('noise', (noise) => wandererAI.hearNoise(noise));
 const raycaster = new THREE.Raycaster();
+const health = createHealth();
+const shake = createScreenShake();
+const death = document.getElementById('death');
 let elapsed = 0; // game-seconds; freezes while paused, so cooldowns pause too
 let sprintNoiseTimer = 0;
 
@@ -55,15 +61,36 @@ const VIEW_KICK = -12; // mouse-delta units fed to applyLookDelta on each shot
 const BODY_DAMAGE = 30;
 const SPRINT_NOISE = 0.25;         // quieter than a gunshot, so sprinting carries less far
 const SPRINT_NOISE_INTERVAL = 0.35; // seconds between sprint noise pulses
+const MELEE_DAMAGE = 25;
+const HIT_SHAKE = 0.55;
 const player = { x: parsed.spawn.x, z: parsed.spawn.z, y: 0, vy: 0 };
 const look = createLook();
+const game = createGameState();
 
 const lock = setupPointerLock(canvas, {
   onLocked: () => { overlay.hidden = true; },
-  onUnlocked: () => { overlay.hidden = false; },
+  onUnlocked: () => { overlay.hidden = game.isDead(); },
   onMouseDelta: (dx, dy) => applyLookDelta(look, dx, dy),
 });
 overlay.addEventListener('click', () => lock.request());
+
+// `elapsed` deliberately keeps running across a retry: every module that holds
+// a timer (health, revolver, the AI) resets its own, so a monotonic clock is
+// both correct and simpler than rewinding it.
+function retry() {
+  player.x = parsed.spawn.x;
+  player.z = parsed.spawn.z;
+  player.y = 0;
+  player.vy = 0;
+  health.reset();
+  revolver.reset();
+  wandererAI.reset();
+  wanderer.reset();
+  game.retry();
+  hud.showDeath(false);
+  lock.request();
+}
+death.addEventListener('click', retry);
 
 const keys = { forward: false, back: false, left: false, right: false, sprint: false };
 
@@ -127,11 +154,25 @@ const loop = createGameLoop((dt) => {
       sprintNoiseTimer = SPRINT_NOISE_INTERVAL;
       bus.emit('noise', { x: player.x, z: player.z, loudness: SPRINT_NOISE });
     }
-    wandererAI.update(dt, player);
+    const enemy = wandererAI.update(dt, player);
+    if (enemy.attacked && game.isPlaying()) {
+      health.damage(MELEE_DAMAGE, elapsed);
+      hud.flashDamage();
+      shake.trigger(HIT_SHAKE);
+      if (health.isDead()) {
+        game.die();
+        hud.showDeath(true);
+        document.exitPointerLock();
+      }
+    }
+    health.update(elapsed);
+    hud.setHealth(health.fraction());
     hud.setReloading(revolver.isReloading(elapsed));
     hud.setAmmo(revolver.rounds(), revolver.capacity());
   }
-  camera.position.set(player.x, EYE_HEIGHT + player.y, player.z);
+  shake.update(dt);
+  const jolt = shake.offset();
+  camera.position.set(player.x + jolt.x, EYE_HEIGHT + player.y + jolt.y, player.z);
   camera.rotation.set(look.pitch, look.yaw, 0);
   muzzleFlash.update(dt);
   wanderer.update({

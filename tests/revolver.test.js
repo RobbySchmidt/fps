@@ -49,3 +49,13 @@ it('rounds stay at the pre-reload count until the reload completes', () => {
   gun.isReloading(2.3); // reload done; settle happens here
   expect(gun.rounds()).toBe(6);
 });
+
+it('reset refills the cylinder and clears timers', () => {
+  const gun = createRevolver();
+  gun.fire(0);
+  gun.fire(1);
+  gun.reset();
+  expect(gun.rounds()).toBe(6);
+  expect(gun.isReloading(0)).toBe(false);
+  expect(gun.fire(0)).toBe(true); // cooldown cleared too
+});

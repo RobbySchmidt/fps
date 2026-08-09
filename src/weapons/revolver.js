@@ -36,5 +36,11 @@ export function createRevolver({ capacity = 6, fireCooldown = 0.35, reloadTime =
       pendingRefill = true; // infinite reserve until M4 pickups
       return true;
     },
+    reset() {
+      rounds = capacity;
+      lastFire = -Infinity;
+      reloadingUntil = -Infinity;
+      pendingRefill = false;
+    },
   };
 }
