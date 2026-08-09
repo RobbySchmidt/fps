@@ -39,3 +39,13 @@ it('reload is refused when already reloading or full', () => {
   expect(gun.startReload(1)).toBe(true);
   expect(gun.startReload(1.5)).toBe(false); // already reloading
 });
+
+it('rounds stay at the pre-reload count until the reload completes', () => {
+  const gun = createRevolver();
+  gun.fire(0);
+  gun.startReload(1);
+  gun.isReloading(1.5);
+  expect(gun.rounds()).toBe(5);
+  gun.isReloading(2.3); // reload done; settle happens here
+  expect(gun.rounds()).toBe(6);
+});

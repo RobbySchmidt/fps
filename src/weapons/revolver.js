@@ -2,8 +2,17 @@ export function createRevolver({ capacity = 6, fireCooldown = 0.35, reloadTime =
   let rounds = capacity;
   let lastFire = -Infinity;
   let reloadingUntil = -Infinity;
+  let pendingRefill = false;
+
+  function settle(now) {
+    if (pendingRefill && now >= reloadingUntil) {
+      rounds = capacity;
+      pendingRefill = false;
+    }
+  }
 
   function isReloading(now) {
+    settle(now);
     return now < reloadingUntil;
   }
 
@@ -12,6 +21,7 @@ export function createRevolver({ capacity = 6, fireCooldown = 0.35, reloadTime =
     capacity: () => capacity,
     isReloading,
     fire(now) {
+      settle(now);
       if (isReloading(now)) return false;
       if (rounds <= 0) return false;
       if (now - lastFire < fireCooldown) return false;
@@ -20,9 +30,10 @@ export function createRevolver({ capacity = 6, fireCooldown = 0.35, reloadTime =
       return true;
     },
     startReload(now) {
+      settle(now);
       if (isReloading(now) || rounds === capacity) return false;
       reloadingUntil = now + reloadTime;
-      rounds = capacity; // takes effect once isReloading(now) turns false; infinite reserve until M4 pickups
+      pendingRefill = true; // infinite reserve until M4 pickups
       return true;
     },
   };
