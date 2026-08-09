@@ -58,3 +58,12 @@ it('reset restores full health', () => {
   expect(health.hp()).toBe(100);
   expect(health.isDead()).toBe(false);
 });
+
+it('does not credit regeneration for time spent inside the delay window', () => {
+  const health = createHealth({ regenRate: 5 });
+  health.damage(60, 0);   // hp 40
+  health.update(0);
+  health.update(3);       // still inside the 5s delay
+  health.update(10);      // only t=5..10 may regenerate: 5s * 5hp = 25
+  expect(health.hp()).toBeCloseTo(65);
+});

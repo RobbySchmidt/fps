@@ -17,8 +17,11 @@ export function createHealth({ max = 100, regenDelay = 5, regenRate = 12 } = {})
       const dt = lastUpdateAt === null ? 0 : now - lastUpdateAt;
       lastUpdateAt = now;
       if (hp <= 0 || hp >= max) return;
-      if (now - lastDamageAt <= regenDelay) return;
-      hp = Math.min(max, hp + regenRate * dt);
+      const sinceDamage = now - lastDamageAt;
+      if (sinceDamage <= regenDelay) return;
+      // only the portion of this interval that lies past the delay may regenerate
+      const regenSeconds = Math.min(dt, sinceDamage - regenDelay);
+      hp = Math.min(max, hp + regenRate * regenSeconds);
     },
     reset() {
       hp = max;
