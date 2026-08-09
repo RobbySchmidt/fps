@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 import { CELL } from './mapData.js';
+import { createToonMaterial } from '../rendering/toonMaterial.js';
+import { PALETTE } from '../rendering/palette.js';
 
 const WALL_HEIGHT = 3;
 
@@ -7,7 +9,7 @@ export function buildGreybox(parsed) {
   const group = new THREE.Group();
 
   const wallGeo = new THREE.BoxGeometry(CELL, WALL_HEIGHT, CELL);
-  const wallMat = new THREE.MeshStandardMaterial({ color: 0x8a8f98 });
+  const wallMat = createToonMaterial(PALETTE.wall);
   for (const { c, r } of parsed.walls) {
     const wall = new THREE.Mesh(wallGeo, wallMat);
     wall.position.set(c * CELL, WALL_HEIGHT / 2, r * CELL);
@@ -21,14 +23,14 @@ export function buildGreybox(parsed) {
 
   const floor = new THREE.Mesh(
     new THREE.PlaneGeometry(width, depth),
-    new THREE.MeshStandardMaterial({ color: 0x4c515a }),
+    createToonMaterial(PALETTE.floor),
   );
   floor.rotation.x = -Math.PI / 2;
   floor.position.set(centerX, 0, centerZ);
 
   const ceiling = new THREE.Mesh(
     new THREE.PlaneGeometry(width, depth),
-    new THREE.MeshStandardMaterial({ color: 0x3a3f47 }),
+    createToonMaterial(PALETTE.ceiling),
   );
   ceiling.rotation.x = Math.PI / 2;
   ceiling.position.set(centerX, WALL_HEIGHT, centerZ);
