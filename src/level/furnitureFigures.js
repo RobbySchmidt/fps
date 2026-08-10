@@ -242,6 +242,179 @@ function rug(item, w, d, h) {
   return g;
 }
 
+function billiardTable(item, w, d) {
+  const felt = createInkMaterial(item.color, 'stone', Math.max(1, w / 2), Math.max(1, d / 2));
+  const frame = createInkMaterial(PALETTE.furnitureWalnut, 'wood');
+  const g = new THREE.Group();
+  g.add(box(frame, w - 0.1, 0.22, d - 0.1, 0, 0.75, 0));
+  g.add(box(felt, w - 0.3, 0.04, d - 0.3, 0, 0.88, 0));
+  g.add(box(frame, w - 0.1, 0.08, 0.1, 0, 0.88, (d - 0.2) / 2));   // rails
+  g.add(box(frame, w - 0.1, 0.08, 0.1, 0, 0.88, -(d - 0.2) / 2));
+  g.add(box(frame, 0.1, 0.08, d - 0.1, (w - 0.2) / 2, 0.88, 0));
+  g.add(box(frame, 0.1, 0.08, d - 0.1, -(w - 0.2) / 2, 0.88, 0));
+  for (const [sx, sz] of [[-1, -1], [-1, 1], [1, -1], [1, 1]]) {
+    g.add(box(frame, 0.16, 0.66, 0.16, sx * (w / 2 - 0.25), 0.33, sz * (d / 2 - 0.25)));
+  }
+  return g;
+}
+
+function grandPiano(item, w, d) {
+  const black = createInkMaterial(item.color, 'iron', Math.max(1, w / 2), 1);
+  const g = new THREE.Group();
+  g.add(box(black, w * 0.95, 0.4, d * 0.9, 0, 0.75, 0));                    // body
+  const lid = box(black, w * 0.9, 0.04, d * 0.85, 0, 1.0, -d * 0.1);
+  lid.rotation.x = -0.45;                                                    // open lid
+  g.add(lid);
+  g.add(box(black, w * 0.7, 0.06, 0.12, 0, 0.62, d / 2 - 0.08));             // keyboard shelf
+  for (const [sx, sz] of [[-1, -1], [-1, 1], [1, 0]]) {
+    g.add(cylinder(black, 0.06, 0.55, sx * (w / 2 - 0.2), 0.275, sz * (d / 2 - 0.2) || 0, 8));
+  }
+  return g;
+}
+
+function clock(item, w, d, h) {
+  const wood = createInkMaterial(item.color, 'wood');
+  const face = createInkMaterial(PALETTE.stonePale, 'stone');
+  const g = new THREE.Group();
+  g.add(box(wood, w * 0.5, h, d * 0.35, 0, h / 2, 0));
+  g.add(box(wood, w * 0.6, 0.12, d * 0.4, 0, h - 0.06, 0));
+  const dial = cylinder(face, w * 0.16, 0.02, 0, h - 0.3, d * 0.19, 12);
+  dial.rotation.x = Math.PI / 2;
+  g.add(dial);
+  return g;
+}
+
+function globe(item, w, d, h) {
+  const wood = createInkMaterial(PALETTE.furnitureWalnut, 'wood');
+  const sphere = createInkMaterial(item.color, 'stone');
+  const g = new THREE.Group();
+  const ball = new THREE.Mesh(new THREE.SphereGeometry(Math.min(w, d) * 0.3, 10, 8), sphere);
+  ball.position.y = h - 0.35;
+  g.add(ball);
+  for (let i = 0; i < 3; i++) {
+    const a = (i / 3) * Math.PI * 2;
+    const leg = box(wood, 0.05, h - 0.6, 0.05, Math.sin(a) * 0.14, (h - 0.6) / 2, Math.cos(a) * 0.14);
+    leg.rotation.z = Math.sin(a) * 0.15;
+    leg.rotation.x = -Math.cos(a) * 0.15;
+    g.add(leg);
+  }
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(Math.min(w, d) * 0.34, 0.02, 6, 16), wood);
+  ring.position.y = h - 0.35;
+  ring.rotation.y = 0.4;
+  g.add(ring);
+  return g;
+}
+
+function safe(item, w, d, h) {
+  const iron = createInkMaterial(item.color, 'iron');
+  const dark = createInkMaterial(PALETTE.furnitureIronDark, 'iron');
+  const g = new THREE.Group();
+  g.add(box(iron, w * 0.9, h, d * 0.9, 0, h / 2, 0));
+  g.add(cylinder(dark, 0.07, 0.04, 0, h * 0.6, d * 0.45).rotateX(Math.PI / 2));
+  g.add(box(dark, 0.05, h * 0.7, 0.03, w * 0.38, h / 2, d * 0.45)); // hinge strip
+  return g;
+}
+
+function pedestal(item, w, d, h) {
+  const stone = createInkMaterial(item.color, 'stone');
+  const g = new THREE.Group();
+  g.add(box(stone, w * 0.8, 0.12, d * 0.8, 0, 0.06, 0));
+  g.add(box(stone, w * 0.5, h - 0.3, d * 0.5, 0, (h - 0.3) / 2 + 0.12, 0));
+  g.add(box(stone, w * 0.7, 0.08, d * 0.7, 0, h - 0.1, 0));
+  const bust = new THREE.Mesh(new THREE.SphereGeometry(w * 0.18, 8, 6), stone);
+  bust.position.y = h + 0.12;
+  bust.scale.y = 1.3;
+  g.add(bust);
+  return g;
+}
+
+function fern(item, w, d, h) {
+  const pot = createInkMaterial(PALETTE.furnitureStoneWarm, 'stone');
+  const leaf = createInkMaterial(item.color, 'wood');
+  const g = new THREE.Group();
+  g.add(cylinder(pot, w * 0.28, 0.32, 0, 0.16, 0, 10));
+  for (let i = 0; i < 6; i++) {
+    const a = (i / 6) * Math.PI * 2;
+    const blade = box(leaf, 0.08, 0.55, 0.02, Math.sin(a) * 0.12, 0.55, Math.cos(a) * 0.12);
+    blade.rotation.z = Math.sin(a) * 0.5;
+    blade.rotation.x = -Math.cos(a) * 0.5;
+    g.add(blade);
+  }
+  return g;
+}
+
+function armor(item, w, d) {
+  const steel = createInkMaterial(item.color, 'iron');
+  const g = new THREE.Group();
+  g.add(box(steel, w * 0.7, 0.1, d * 0.7, 0, 0.05, 0));                 // plinth
+  g.add(box(steel, 0.12, 0.55, 0.14, -0.09, 0.42, 0));                  // legs
+  g.add(box(steel, 0.12, 0.55, 0.14, 0.09, 0.42, 0));
+  g.add(box(steel, 0.34, 0.5, 0.2, 0, 0.95, 0));                        // cuirass
+  g.add(box(steel, 0.2, 0.24, 0.2, 0, 1.35, 0));                        // helm
+  g.add(box(steel, 0.09, 0.45, 0.12, -0.24, 0.95, 0));                  // arms
+  g.add(box(steel, 0.09, 0.45, 0.12, 0.24, 0.95, 0));
+  g.add(cylinder(steel, 0.02, 1.7, 0.34, 0.85, 0, 6));                  // halberd shaft
+  g.add(box(steel, 0.04, 0.3, 0.14, 0.34, 1.6, 0));                     // halberd head
+  return g;
+}
+
+function statueSettee(item, w, d) {
+  const cloth = createInkMaterial(item.color, 'wood');
+  const stone = createInkMaterial(PALETTE.stonePale, 'stone');
+  const g = new THREE.Group();
+  const r = Math.min(w, d) / 2 - 0.05;
+  g.add(cylinder(cloth, r, 0.45, 0, 0.225, 0, 16));                     // circular seat ring
+  g.add(cylinder(stone, r * 0.35, 0.9, 0, 0.9, 0, 10));                 // plinth
+  g.add(box(stone, 0.3, 0.6, 0.22, 0, 1.65, 0));                        // figure torso
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.11, 8, 6), stone);
+  head.position.y = 2.05;
+  g.add(head);
+  return g;
+}
+
+function coatStand(item, w, d, h) {
+  const wood = createInkMaterial(PALETTE.furnitureWalnut, 'wood');
+  const coat = createInkMaterial(item.color, 'wood');
+  const g = new THREE.Group();
+  g.add(cylinder(wood, 0.04, h, 0, h / 2, 0, 8));
+  g.add(cylinder(wood, 0.2, 0.05, 0, 0.025, 0, 8));
+  for (let i = 0; i < 4; i++) {
+    const a = (i / 4) * Math.PI * 2;
+    g.add(box(wood, 0.04, 0.04, 0.22, Math.sin(a) * 0.12, h - 0.12, Math.cos(a) * 0.12));
+  }
+  g.add(box(coat, 0.34, 0.75, 0.2, 0.12, h - 0.55, 0.06)); // the draped coat: reads as a figure for a beat
+  return g;
+}
+
+function staircase(item, w, d, h) {
+  const wood = createInkMaterial(item.color, 'wood', Math.max(1, w / 2), 1);
+  const dark = createInkMaterial(PALETTE.furnitureWoodDark, 'wood');
+  const g = new THREE.Group();
+  const steps = 5;
+  for (let i = 0; i < steps; i++) {
+    const t = (i + 1) / steps;
+    g.add(box(wood, w - 0.3, 0.12, d / steps, 0, t * (h - 0.2), d / 2 - (i + 0.5) * (d / steps)));
+  }
+  g.add(box(dark, 0.12, h, 0.12, -(w / 2 - 0.1), h / 2, d / 2 - 0.1)); // newel posts
+  g.add(box(dark, 0.12, h, 0.12, w / 2 - 0.1, h / 2, d / 2 - 0.1));
+  const rope = cylinder(dark, 0.025, w - 0.3, 0, 0.8, d / 2 - 0.05, 6);
+  rope.rotation.z = Math.PI / 2;
+  g.add(rope);                                                           // roped off: inert this milestone
+  return g;
+}
+
+function hatch(item, w, d, h) {
+  const wood = createInkMaterial(item.color, 'wood');
+  const iron = createInkMaterial(PALETTE.furnitureIronDark, 'iron');
+  const g = new THREE.Group();
+  g.add(box(wood, w * 0.95, h, d * 0.95, 0, h / 2, 0));
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(0.09, 0.02, 6, 12), iron);
+  ring.position.set(0, h + 0.02, d * 0.25);
+  ring.rotation.x = Math.PI / 2;
+  g.add(ring);
+  return g;
+}
+
 const BUILDERS = {
   'work-table': workTable,
   stove,
@@ -258,6 +431,19 @@ const BUILDERS = {
   bookcase,
   cabinet,
   rug,
+  fireplace: hearth,
+  'billiard-table': billiardTable,
+  'grand-piano': grandPiano,
+  clock,
+  globe,
+  safe,
+  pedestal,
+  fern,
+  armor,
+  'statue-settee': statueSettee,
+  'coat-stand': coatStand,
+  staircase,
+  hatch,
 };
 
 function baseId(id) {
