@@ -60,4 +60,5 @@ export const KITCHEN_TEST = {
     { x: 1, z: 8, facing: 'e' },
     { x: 1, z: 9, facing: 'e' },
   ],
+  windowLights: true,
 };

@@ -1,25 +1,6 @@
-export const CELL = 2; // meters per grid cell
+export const CELL = 1; // meters per grid cell
 
 // Legend: '#' wall, '.' floor, 'D' doorway (floor), 'S' spawn (floor), 'L' lamp (floor).
-// Six rooms along the top and middle, one grand hall at the bottom.
-export const MAP = `
-########################
-#......#........#......#
-#......#...L....#..L...#
-#......D........D......#
-#......#........#......#
-####D######DD######D####
-#........#......#......#
-#...L....#......#..L...#
-#........D......D......#
-#........#......#......#
-#####D##########D#######
-#......................#
-#....L......S.....L....#
-#......................#
-########################
-`;
-
 export function parseMap(text, cell = CELL) {
   const lines = text.split(/\r?\n/);
   while (lines.length && lines[0].trim() === '') lines.shift();

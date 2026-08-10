@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { selectLevel, MANSION, KITCHEN_TEST } from '../src/level/levels.js';
 import { parseMap } from '../src/level/mapData.js';
 import { expandFurniture } from '../src/level/furniture.js';
+import { hasFigure, FIGURE_NAMES } from '../src/level/furnitureFigures.js';
 
 describe('selectLevel', () => {
   it('returns the mansion by default', () => {
@@ -76,9 +77,80 @@ describe('KITCHEN_TEST descriptor', () => {
       }
     });
 
-    it('gives the mansion no art-slice data', () => {
-      expect(MANSION.floorPatches).toBeUndefined();
-      expect(MANSION.windows).toBeUndefined();
+    // The "mansion has no art-slice data" assertion that used to live here is
+    // superseded: the blueprint ground floor (M4a) now ships real
+    // floorPatches/wallPatches/windows/wallProps, covered by the
+    // 'GROUND_FLOOR (mansion) descriptor' block below.
+  });
+});
+
+describe('GROUND_FLOOR (mansion) descriptor', () => {
+  const parsed = parseMap(MANSION.mapText, MANSION.cell);
+
+  it('is the 58x47 blueprint at 1m cells', () => {
+    expect(MANSION.cell).toBe(1);
+    expect(parsed.cols).toBe(58);
+    expect(parsed.rows).toBe(47);
+  });
+
+  it('has spawn, wanderer spawn, and 11 lamps where the blueprint puts them', () => {
+    expect(parsed.spawn).toEqual({ x: 30, z: 41 });
+    expect(parsed.wandererSpawn).toEqual({ x: 41, z: 2 });
+    expect(parsed.lamps).toHaveLength(11);
+  });
+
+  it('expands all furniture cleanly (no wall or doorway overlap)', () => {
+    const { moveCells, sightCells } = expandFurniture(MANSION.furniture, {
+      wallSet: parsed.wallSet,
+      cols: parsed.cols,
+      rows: parsed.rows,
+      doorCells: parsed.doorCells,
     });
+    expect(moveCells.size).toBeGreaterThan(100);
+    expect(sightCells.size).toBeGreaterThan(30);
+  });
+
+  it('keeps both spawns off blocking furniture', () => {
+    const { moveCells } = expandFurniture(MANSION.furniture, {
+      wallSet: parsed.wallSet, cols: parsed.cols, rows: parsed.rows, doorCells: parsed.doorCells,
+    });
+    expect(moveCells.has('30,41')).toBe(false);
+    expect(moveCells.has('41,2')).toBe(false);
+  });
+
+  it('maps every furniture piece to an existing figure builder', () => {
+    for (const item of MANSION.furniture) {
+      expect(hasFigure(item), `no builder for ${item.id}`).toBe(true);
+    }
+  });
+
+  it('puts every window and wall prop on a wall cell', () => {
+    for (const wdw of MANSION.windows) {
+      expect(parsed.wallSet.has(`${wdw.x},${wdw.z}`)).toBe(true);
+    }
+    for (const p of MANSION.wallProps) {
+      const xs = p.x !== undefined ? [p.x, p.x] : [p.x0, p.x1];
+      const zs = p.z !== undefined ? [p.z, p.z] : [p.z0, p.z1];
+      for (let x = xs[0]; x <= xs[1]; x++) for (let z = zs[0]; z <= zs[1]; z++) {
+        expect(parsed.wallSet.has(`${x},${z}`), `${p.type} off-wall at ${x},${z}`).toBe(true);
+      }
+    }
+  });
+
+  it('keeps all patches inside the map', () => {
+    for (const p of [...MANSION.floorPatches, ...MANSION.wallPatches]) {
+      expect(p.x0).toBeLessThanOrEqual(p.x1);
+      expect(p.z0).toBeLessThanOrEqual(p.z1);
+      expect(p.x1).toBeLessThan(parsed.cols);
+      expect(p.z1).toBeLessThan(parsed.rows);
+    }
+  });
+
+  it('uses FIGURE_NAMES-registered figures for every distinct figure this manifest references', () => {
+    const names = FIGURE_NAMES();
+    const used = new Set(MANSION.furniture.map((item) => item.figure).filter(Boolean));
+    for (const figure of used) {
+      expect(names).toContain(figure);
+    }
   });
 });

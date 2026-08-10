@@ -1,5 +1,5 @@
 import { it, expect, describe } from 'vitest';
-import { parseMap, MAP, CELL } from '../src/level/mapData.js';
+import { parseMap, CELL } from '../src/level/mapData.js';
 
 const SMALL = `
 #####
@@ -29,12 +29,6 @@ it('throws when the map has no spawn', () => {
   expect(() => parseMap('###\n#.#\n###')).toThrow(/spawn/);
 });
 
-it('ships a valid mansion MAP', () => {
-  const parsed = parseMap(MAP);
-  expect(parsed.walls.length).toBeGreaterThan(50);
-  expect(parsed.spawn).toBeDefined();
-});
-
 it('parses identically when lines are joined with CRLF', () => {
   const crlf = SMALL.split('\n').join('\r\n');
   const lf = parseMap(SMALL);
@@ -49,10 +43,6 @@ it('collects lamp positions as walkable floor', () => {
   const parsed = parseMap('#####\n#S.L#\n#####');
   expect(parsed.lamps).toEqual([{ x: 3 * CELL, z: 1 * CELL }]);
   expect(parsed.wallSet.has('3,1')).toBe(false);
-});
-
-it('mansion MAP has six lamps', () => {
-  expect(parseMap(MAP).lamps.length).toBe(6);
 });
 
 describe('parseMap cell size and wanderer spawn', () => {
@@ -80,7 +70,7 @@ describe('parseMap cell size and wanderer spawn', () => {
   });
 
   it('returns null wandererSpawn when the map has no W', () => {
-    expect(parseMap(MAP).wandererSpawn).toBeNull();
+    expect(parseMap(SMALL).wandererSpawn).toBeNull();
   });
 });
 
