@@ -31,51 +31,54 @@ primitives (`src/level/furnitureFigures.js`) with a box fallback. Read
 items include a shared material cache before ten rooms, non-shootable
 windows, basin shape, and playtest watch-items (8-light perf, patch seam).
 
-### IN PROGRESS: M4a "mansion blueprint" — brainstorm mid-flight, slice validated
+### IN PROGRESS: M4a "mansion blueprint" — READY TO IMPLEMENT
 
-Redesign the mansion from an architectural blueprint — named furnished
-rooms, octagonal grand hall anchor. Decisions already made (do not re-ask):
+Brainstorm COMPLETE. All 11 ground-floor spaces mockup-approved by the user
+(overview v2 58×47m + foyer, grand hall, kitchen, dining, sitting, library,
+drawing, billiard, study, corridors). Spec and plan are committed:
 
-1. **Blueprint-first**, rooms get identities (foyer, library, …).
-2. **1m cells** (down from 2m); same tile engine. Curved geometry rejected.
-3. **Three floors** (ground/upper/cellar) as separate maps + stair
-   transitions — but the user narrowed M4a to the GROUND FLOOR ONLY;
-   upper-floor draft is banked in `.superpowers/brainstorm/` mockups,
-   cellar undesigned. Cellar = fully dark flashlight-only floor (M4b+).
-4. **Every room gets a furnished mockup** before implementation (user wants
-   furniture everywhere). Approved so far: ground-floor overview (46×36m,
-   11 spaces), foyer, grand hall, kitchen. Mockup generator (renders real
-   tile grids to the visual companion): scratchpad `genfloor.mjs` — regen
-   details in the session; concept is reproducible from the approved specs.
-5. **Furniture engine rules (playtest-validated in the test slice):**
-   `low` ~0.9m blocks movement+A* but not enemy sight (shoot over it);
-   `tall` ~1.9m blocks sight too; `decor` = no collision, reserved for
-   visually-passable dressing only — anything freestanding that LOOKS solid
-   must be `low` (walk-through solid boxes read as clipping). Per-item
-   `height` override exists (chairs 0.45).
-6. **Room sizing rule from playtest:** 16×10m kitchen feels right for
-   fighting the Wanderer; treat that as the MINIMUM fight room. The
-   approved blueprint's small rooms (study 7×7, drawing 11×6) must grow or
-   be non-combat pressure rooms — blueprint needs a sizing revision pass.
+- **Spec:** `docs/superpowers/specs/2026-08-10-m4a-ground-floor-design.md`
+  (map, full furniture manifest, figure-builder table, windows glow-only
+  decision, engine prerequisites, palette additions).
+- **Plan:** `docs/superpowers/plans/2026-08-10-m4a-ground-floor.md` —
+  7 tasks, user chose the plan; execution had NOT started yet.
+- **NEXT STEP:** execute the plan via superpowers:subagent-driven-development
+  on a feature branch (in-place, project convention), then final review →
+  user playtest → merge. Read BOTH ledgers first:
+  `docs/superpowers/ledgers/kitchen-combat-test-slice.md` and
+  `docs/superpowers/ledgers/kitchen-art-slice.md`.
+- The plan's map block is machine-verified (47 rows × 58 cols, spawn
+  {30,41}, wanderer {41,2} in the billiard room, 11 lamps, 74 door cells,
+  670 walls). Copy map + manifest from the plan byte-for-byte — a past
+  implementer "cleaned up" a map and it cost a fix round.
 
-**Engine now supports (test slice, merged):** level descriptors
-`{mapText, cell, furniture}` via `src/level/levels.js` + `?map=` URL param;
-`parseMap(text, cell)` + `W` wanderer-spawn char; move/sight cell-set split
-(`src/level/furniture.js`); AI takes `cell` + `sightSet`; toon furniture
-boxes (`src/level/buildFurniture.js`). Mansion map untouched (default).
+Decisions locked during brainstorm (do not re-ask):
 
-**Next step when resuming:** revise ground-floor blueprint room sizes per
-rule 6, then continue per-room furnished mockups with the visual companion
-(dining, sitting, library, drawing, billiard, study, corridors), then spec →
-plan → subagent implementation. Read
-`docs/superpowers/ledgers/kitchen-combat-test-slice.md` first (M4a
-prerequisites: furniture door-overlap validation needs parseMap to record
-`D` cells; lamp radius may flatten small rooms; ~1000 wall meshes at 1m
-full-mansion — perf watch).
+1. **Blueprint-first**, 1m cells, three floors as separate maps; M4a =
+   GROUND FLOOR ONLY. Upper-floor draft banked (see genfloor.mjs `upper`);
+   cellar undesigned, fully dark, M4b+.
+2. **Furniture rules (playtest-validated):** `low` ~0.9m blocks
+   movement+A* not sight; `tall` ~1.9m blocks sight too; `decor` = no
+   collision, ONLY for visually-passable dressing (rugs) — freestanding
+   solid-looking pieces must block. Per-item `height` override (chairs
+   0.45). Blocking furniture never on doorway cells.
+3. **Sizing rule:** 16×10m = minimum fight room (validated). Study 8×8 is
+   the deliberate dark non-combat pressure room (no lamp, boarded window).
+   Billiard room = single-entrance risk room, Wanderer spawns there.
+4. **Corridor policy:** no blocking furniture in corridors/passages ever
+   (2m wide; blockers create 1m A* funnels). Runner rugs + wall props only.
+5. **Windows on the mansion floor are glow-only** (no PointLights — 34
+   would sink the renderer); kitchen-test keeps its 4 lit windows.
+6. **Mockup tool saved to the repo:** `docs/superpowers/tools/genfloor.mjs`
+   (modes: ground2 = approved blueprint, room <id> = furnished mockups,
+   export = engine map+manifest, upper = banked draft). Update SCREEN_DIR
+   to the active companion session before generating HTML.
 
-**M4b wishlist addition (user, parked):** jump/vault onto low furniture —
-very fun, needs vertical collision + AI reach rules; design note: Wanderer
-reach must cover 0.9m surfaces so tables are repositioning, not safety.
+**M4b wishlist (user, parked):** jump/vault onto low furniture — needs
+vertical collision + AI reach rules; design note: Wanderer reach must cover
+0.9m surfaces so tables are repositioning, not safety. Also parked: door
+props/locks, pickups in billiard room + study safe, secretary-desk lore
+notes, window light budget revisit.
 
 ### Other open items
 
