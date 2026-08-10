@@ -14,10 +14,22 @@ local Claude memory.
 | M2 art pass ("dark ink & toon": toon materials, ink outlines, vignette, lamp lighting) | merged to main, accepted |
 | M3a shooting core (jump, revolver, impacts, HUD, noise events) | merged to main, accepted |
 | M3b the Wanderer (enemy, health, death/retry) | merged to main, accepted ("scary and fair") |
-| M4a kitchen combat test slice (furniture-as-cover, 1m cells, `?map=kitchen-test`) | **merged to main, playtest-validated** ("that feels good") |
+| M4a kitchen combat test slice (furniture-as-cover, 1m cells, `?map=kitchen-test`) | merged to main, playtest-validated ("that feels good") |
+| M4a kitchen ART slice (ink grain/hatch textures, composed furniture, room surfaces, windows, chitin Wanderer) | **merged to main, accepted** ("i love the art style") |
 
 Everything is on `main` and pushed to GitHub. Fresh machine: `npm install`,
-`npm test` (expect 126 passing), `npm run dev`.
+`npm test` (expect 129 passing), `npm run dev`.
+
+**Art direction (decided, session 3): "inked illustration" = direction B.**
+Flat toon + ink outlines PLUS sparse hand-drawn grain/hatching via
+canvas-generated tileable textures (`src/rendering/inkTextures.js`,
+families wood/stone/iron/chitin; greyscale multiply maps tinted by
+material.color, chitin baked-color). Per-room floor/wall patches and
+moonlight windows exist as level-descriptor data. Furniture is composed
+primitives (`src/level/furnitureFigures.js`) with a box fallback. Read
+`docs/superpowers/ledgers/kitchen-art-slice.md` before extending: deferred
+items include a shared material cache before ten rooms, non-shootable
+windows, basin shape, and playtest watch-items (8-light perf, patch seam).
 
 ### IN PROGRESS: M4a "mansion blueprint" — brainstorm mid-flight, slice validated
 
