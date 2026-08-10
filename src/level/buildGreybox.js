@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { CELL } from './mapData.js';
 import { createToonMaterial, createInkMaterial } from '../rendering/toonMaterial.js';
 import { PALETTE } from '../rendering/palette.js';
@@ -8,15 +9,21 @@ const WALL_HEIGHT = 3;
 export function buildGreybox(parsed, cell = CELL, { floorPatches = [], wallPatches = [] } = {}) {
   const group = new THREE.Group();
 
-  const wallGeo = new THREE.BoxGeometry(cell, WALL_HEIGHT, cell);
-  const wallMat = createToonMaterial(PALETTE.wall);
-  const patchMats = wallPatches.map((p) => createInkMaterial(p.color, p.family, cell / 2, 1.5));
   const inPatch = (p, c, r) => c >= p.x0 && c <= p.x1 && r >= p.z0 && r <= p.z1;
+  const patchMats = wallPatches.map((p) => createInkMaterial(p.color, p.family, cell / 2, WALL_HEIGHT / 2));
+  const wallMat = createToonMaterial(PALETTE.wall);
+  const buckets = new Map(); // patch index (-1 = default) -> geometries
   for (const { c, r } of parsed.walls) {
-    const patchIndex = wallPatches.findIndex((p) => inPatch(p, c, r));
-    const wall = new THREE.Mesh(wallGeo, patchIndex >= 0 ? patchMats[patchIndex] : wallMat);
-    wall.position.set(c * cell, WALL_HEIGHT / 2, r * cell);
-    group.add(wall);
+    const idx = wallPatches.findIndex((p) => inPatch(p, c, r));
+    const geo = new THREE.BoxGeometry(cell, WALL_HEIGHT, cell);
+    geo.translate(c * cell, WALL_HEIGHT / 2, r * cell);
+    if (!buckets.has(idx)) buckets.set(idx, []);
+    buckets.get(idx).push(geo);
+  }
+  for (const [idx, geos] of buckets) {
+    const merged = mergeGeometries(geos);
+    geos.forEach((g) => g.dispose());
+    group.add(new THREE.Mesh(merged, idx >= 0 ? patchMats[idx] : wallMat));
   }
 
   const width = parsed.cols * cell;

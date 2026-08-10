@@ -2,11 +2,12 @@ import * as THREE from 'three';
 import { createScene } from './rendering/scene.js';
 import { parseMap } from './level/mapData.js';
 import { selectLevel } from './level/levels.js';
-import { expandFurniture } from './level/furniture.js';
+import { expandFurniture, reachableWaypoints } from './level/furniture.js';
 import { buildFurniture } from './level/buildFurniture.js';
 import { buildGreybox } from './level/buildGreybox.js';
 import { buildLamps } from './level/buildLamps.js';
 import { buildWindows } from './level/buildWindows.js';
+import { buildWallProps } from './level/buildWallProps.js';
 import { moveWithCollision } from './level/collision.js';
 import { createGameLoop } from './core/gameLoop.js';
 import { createLook, applyLookDelta } from './player/look.js';
@@ -37,6 +38,7 @@ const { moveCells, sightCells } = expandFurniture(levelDef.furniture, {
   wallSet: parsed.wallSet,
   cols: parsed.cols,
   rows: parsed.rows,
+  doorCells: parsed.doorCells,
 });
 const moveSet = new Set([...parsed.wallSet, ...moveCells]);
 const sightSet = new Set([...parsed.wallSet, ...sightCells]);
@@ -48,7 +50,17 @@ scene.add(level);
 scene.add(buildLamps(parsed));
 const furnitureGroup = buildFurniture(levelDef.furniture, levelDef.cell);
 scene.add(furnitureGroup);
-scene.add(buildWindows(levelDef.windows ?? [], levelDef.cell));
+const windowsGroup = buildWindows(levelDef.windows ?? [], levelDef.cell, { lights: levelDef.windowLights === true });
+scene.add(windowsGroup);
+const wallPropsGroup = buildWallProps(levelDef.wallProps ?? [], levelDef.cell);
+scene.add(wallPropsGroup);
+
+const staticShootables = [
+  ...level.children,
+  ...furnitureGroup.userData.hitMeshes,
+  ...windowsGroup.children.filter((o) => o.isMesh),
+  ...wallPropsGroup.children.filter((o) => o.isMesh),
+];
 
 scene.add(new THREE.AmbientLight(PALETTE.ambient, 0.85));
 scene.add(camera); // the flashlight is a child of the camera
@@ -66,7 +78,7 @@ const wandererAI = createWandererAI({
   wallSet: moveSet,
   sightSet,
   cell: levelDef.cell,
-  waypoints: parsed.lamps,
+  waypoints: reachableWaypoints(parsed.lamps, moveSet, levelDef.cell),
 });
 const wanderer = createWandererFigure();
 scene.add(wanderer.group);
@@ -147,8 +159,8 @@ function shoot() {
   if (!revolver.fire(elapsed)) return;
   raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
   const shootables = wandererAI.isDead()
-    ? [...level.children, ...furnitureGroup.userData.hitMeshes]
-    : [...level.children, ...furnitureGroup.userData.hitMeshes, ...wanderer.hitMeshes];
+    ? staticShootables
+    : [...staticShootables, ...wanderer.hitMeshes];
   const hits = raycaster.intersectObjects(shootables, false);
   if (hits.length > 0) {
     const hit = hits[0];

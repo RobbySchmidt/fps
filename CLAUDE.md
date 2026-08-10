@@ -16,9 +16,11 @@ local Claude memory.
 | M3b the Wanderer (enemy, health, death/retry) | merged to main, accepted ("scary and fair") |
 | M4a kitchen combat test slice (furniture-as-cover, 1m cells, `?map=kitchen-test`) | merged to main, playtest-validated ("that feels good") |
 | M4a kitchen ART slice (ink grain/hatch textures, composed furniture, room surfaces, windows, chitin Wanderer) | **merged to main, accepted** ("i love the art style") |
+| M4a mansion blueprint — GROUND FLOOR (58×47 @ 1m, 11 furnished rooms, ~90 pieces, wall props, engine perf work) | **implemented on `feature/m4a-ground-floor`, reviewed clean — AWAITING USER PLAYTEST** |
 
-Everything is on `main` and pushed to GitHub. Fresh machine: `npm install`,
-`npm test` (expect 129 passing), `npm run dev`.
+Everything through the art slice is on `main` and pushed to GitHub. Fresh
+machine: `npm install`, `npm test` (129 on main, 147 on the ground-floor
+branch), `npm run dev`.
 
 **Art direction (decided, session 3): "inked illustration" = direction B.**
 Flat toon + ink outlines PLUS sparse hand-drawn grain/hatching via
@@ -31,26 +33,27 @@ primitives (`src/level/furnitureFigures.js`) with a box fallback. Read
 items include a shared material cache before ten rooms, non-shootable
 windows, basin shape, and playtest watch-items (8-light perf, patch seam).
 
-### IN PROGRESS: M4a "mansion blueprint" — READY TO IMPLEMENT
+### IN PROGRESS: M4a "mansion blueprint" — BUILT, AWAITING PLAYTEST
 
-Brainstorm COMPLETE. All 11 ground-floor spaces mockup-approved by the user
-(overview v2 58×47m + foyer, grand hall, kitchen, dining, sitting, library,
-drawing, billiard, study, corridors). Spec and plan are committed:
+All 7 plan tasks executed on `feature/m4a-ground-floor` (9 commits,
+363729e..fe1b112). 147 tests green, production build green, per-task and
+whole-branch reviews clean. **The branch is NOT merged — the next step is the
+user's browser playtest, then merge.**
 
-- **Spec:** `docs/superpowers/specs/2026-08-10-m4a-ground-floor-design.md`
-  (map, full furniture manifest, figure-builder table, windows glow-only
-  decision, engine prerequisites, palette additions).
-- **Plan:** `docs/superpowers/plans/2026-08-10-m4a-ground-floor.md` —
-  7 tasks, user chose the plan; execution had NOT started yet.
-- **NEXT STEP:** execute the plan via superpowers:subagent-driven-development
-  on a feature branch (in-place, project convention), then final review →
-  user playtest → merge. Read BOTH ledgers first:
-  `docs/superpowers/ledgers/kitchen-combat-test-slice.md` and
-  `docs/superpowers/ledgers/kitchen-art-slice.md`.
-- The plan's map block is machine-verified (47 rows × 58 cols, spawn
-  {30,41}, wanderer {41,2} in the billiard room, 11 lamps, 74 door cells,
-  670 walls). Copy map + manifest from the plan byte-for-byte — a past
-  implementer "cleaned up" a map and it cost a fix round.
+What shipped: `src/level/groundFloor.js` (the 58×47 map, ~90-piece furniture
+manifest, floor/wall patches, 34 glow-only windows, 15 wall props);
+`MANSION` now re-exports `GROUND_FLOOR` and `CELL` is `1` (the greybox `MAP`
+is gone); 21 new furniture builders + an explicit `item.figure` field; 23 new
+palette keys; `src/level/buildWallProps.js`. Engine work: doorway-cell
+validation, keyed ink-material cache, merged wall geometry, optional window
+lights, one static shootables list.
+
+- **Ledger (read this first):** `docs/superpowers/ledgers/m4a-ground-floor.md`
+  — rulings, the patrol-wedge bug worth remembering, deferred items, and the
+  measured perf numbers.
+- **Spec:** `docs/superpowers/specs/2026-08-10-m4a-ground-floor-design.md`.
+  **Plan:** `docs/superpowers/plans/2026-08-10-m4a-ground-floor.md`.
+- Playtest questions are at the end of both the plan and the ledger.
 
 Decisions locked during brainstorm (do not re-ask):
 

@@ -4,7 +4,7 @@
 // kind 'decor' blocks nothing — walk-through set dressing.
 export const FURNITURE_HEIGHTS = { low: 0.9, tall: 1.9, decor: 0.6 };
 
-export function expandFurniture(items, { wallSet, cols, rows }) {
+export function expandFurniture(items, { wallSet, cols, rows, doorCells = new Set() }) {
   const moveCells = new Set();
   const sightCells = new Set();
   for (const item of items) {
@@ -23,12 +23,24 @@ export function expandFurniture(items, { wallSet, cols, rows }) {
         if (wallSet.has(key)) {
           throw new Error(`furniture "${item.id}" overlaps a wall at ${x},${z}`);
         }
+        if ((item.kind === 'low' || item.kind === 'tall') && doorCells.has(key)) {
+          throw new Error(`furniture "${item.id}" blocks a doorway at ${x},${z}`);
+        }
         if (item.kind === 'low' || item.kind === 'tall') moveCells.add(key);
         if (item.kind === 'tall') sightCells.add(key);
       }
     }
   }
   return { moveCells, sightCells };
+}
+
+// Lamp cells double as patrol waypoints (see mapData's 'L' legend), but a
+// lamp can legitimately sit over blocking furniture (a table lamp). Drop
+// those from the patrol route — the AI would otherwise target a cell it
+// can never stand on. Lighting itself is unaffected: callers still build a
+// light for every lamp, they just filter the waypoint list through this.
+export function reachableWaypoints(lamps, moveSet, cell) {
+  return lamps.filter((l) => !moveSet.has(`${l.x / cell},${l.z / cell}`));
 }
 
 export function furnitureBox(item, cell) {

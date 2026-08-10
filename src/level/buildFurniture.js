@@ -13,7 +13,7 @@ export function buildFurniture(furniture, cell = CELL) {
   for (const item of furniture) {
     const b = furnitureBox(item, cell);
     let obj;
-    if (hasFigure(item.id)) {
+    if (hasFigure(item)) {
       obj = buildFigure(item, cell);
       obj.position.set(b.x, 0, b.z);
     } else {

@@ -54,6 +54,22 @@ describe('expandFurniture', () => {
       expandFurniture([{ id: 'backwards', kind: 'low', x0: 3, z0: 1, x1: 2, z1: 1 }], bounds),
     ).toThrow(/backwards/);
   });
+
+  it('throws when blocking furniture covers a doorway cell', () => {
+    const withDoor = { ...bounds, doorCells: new Set(['2,3']) };
+    expect(() =>
+      expandFurniture([{ id: 'door-blocker', kind: 'low', x0: 2, z0: 3, x1: 2, z1: 3 }], withDoor),
+    ).toThrow(/door-blocker/);
+  });
+
+  it('allows decor (rugs) on doorway cells', () => {
+    const withDoor = { ...bounds, doorCells: new Set(['2,3']) };
+    const { moveCells } = expandFurniture(
+      [{ id: 'runner', kind: 'decor', x0: 2, z0: 3, x1: 2, z1: 3 }],
+      withDoor,
+    );
+    expect(moveCells.size).toBe(0);
+  });
 });
 
 describe('furnitureBox', () => {

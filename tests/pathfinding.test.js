@@ -17,8 +17,14 @@ const wallSet = new Set([
 ]);
 
 it('converts between world metres and grid cells', () => {
-  expect(worldToCell(4, 6)).toEqual({ c: 2, r: 3 });
+  // Explicit cell arg: this arithmetic check is about the conversion math,
+  // not about mapData's CELL default (which is milestone-specific).
+  expect(worldToCell(4, 6, 2)).toEqual({ c: 2, r: 3 });
   expect(cellToWorld(2, 3)).toEqual({ x: 2 * CELL, z: 3 * CELL });
+});
+
+it('defaults worldToCell to mapData.CELL when no cell arg is given', () => {
+  expect(worldToCell(4 * CELL, 6 * CELL)).toEqual({ c: 4, r: 6 });
 });
 
 it('finds a straight path down an open column', () => {

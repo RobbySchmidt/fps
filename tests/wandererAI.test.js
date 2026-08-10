@@ -1,6 +1,14 @@
 import { describe, it, expect } from 'vitest';
 import { createWandererAI, WANDERER_CONFIG } from '../src/enemy/wandererAI.js';
-import { CELL } from '../src/level/mapData.js';
+import { CELL as MAP_CELL } from '../src/level/mapData.js';
+
+// Synthetic arena scale for these behavior tests: fixed at 2m, independent
+// of mapData's CELL (which is milestone-specific — 1m for the current
+// ground floor). Keeps AI distance/timing margins (sight/chase/melee) that
+// were tuned against a real 1m-cell map from drifting when mapData's
+// default changes; the "defaults ... to CELL" test below deliberately uses
+// MAP_CELL to verify the AI's own default still tracks mapData's CELL.
+const CELL = 2;
 
 // An open 9x9 arena: only the border is wall, so cells 1..7 are walkable.
 function makeArena() {
@@ -20,7 +28,7 @@ const waypoints = [{ x: 6 * CELL, z: 2 * CELL }, { x: 6 * CELL, z: 6 * CELL }];
 const far = { x: 7 * CELL, z: 7 * CELL };
 
 function makeAI(config = {}) {
-  return createWandererAI({ spawn, wallSet, waypoints, config });
+  return createWandererAI({ spawn, wallSet, waypoints, cell: CELL, config });
 }
 
 function run(ai, seconds, player, dt = 1 / 60) {
@@ -171,6 +179,7 @@ it('cannot wind up on a player it has no line of sight to', () => {
     spawn: { x: 3 * CELL, z: 2 * CELL },
     wallSet: blocked,
     waypoints,
+    cell: CELL,
   });
   const player = { x: 5 * CELL, z: 2 * CELL };
   run(ai, 1, player);
@@ -233,12 +242,12 @@ describe('two-set furniture behavior at cell 1', () => {
   it('defaults sightSet to wallSet and cell to CELL (existing behavior)', () => {
     const walls = ringWalls(7, 5);
     const ai = createWandererAI({
-      spawn: { x: 1 * CELL, z: 2 * CELL },
+      spawn: { x: 1 * MAP_CELL, z: 2 * MAP_CELL },
       wallSet: new Set([...walls, '3,1', '3,2', '3,3']),
-      waypoints: [{ x: 1 * CELL, z: 2 * CELL }],
+      waypoints: [{ x: 1 * MAP_CELL, z: 2 * MAP_CELL }],
       config: { proximityRange: 100 }, // neutralize the facing cone here too
     });
-    ai.update(0.016, { x: 5 * CELL, z: 2 * CELL });
+    ai.update(0.016, { x: 5 * MAP_CELL, z: 2 * MAP_CELL });
     expect(ai.state()).toBe('patrol'); // the blocker also blocks sight by default
   });
 });
