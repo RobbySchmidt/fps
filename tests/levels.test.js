@@ -21,15 +21,15 @@ describe('KITCHEN_TEST descriptor', () => {
   const parsed = parseMap(KITCHEN_TEST.mapText, KITCHEN_TEST.cell);
 
   it('parses with player spawn, wanderer spawn, and two lamps', () => {
-    expect(parsed.spawn).toEqual({ x: 7, z: 14 });
-    expect(parsed.wandererSpawn).toEqual({ x: 11, z: 5 });
+    expect(parsed.spawn).toEqual({ x: 9, z: 16 });
+    expect(parsed.wandererSpawn).toEqual({ x: 14, z: 6 });
     expect(parsed.lamps).toHaveLength(2);
   });
 
-  it('is 21 columns by 17 rows at 1m cells', () => {
+  it('is 25 columns by 19 rows at 1m cells', () => {
     expect(KITCHEN_TEST.cell).toBe(1);
-    expect(parsed.cols).toBe(21);
-    expect(parsed.rows).toBe(17);
+    expect(parsed.cols).toBe(25);
+    expect(parsed.rows).toBe(19);
   });
 
   it('has furniture that expands cleanly against the parsed map', () => {
@@ -38,9 +38,10 @@ describe('KITCHEN_TEST descriptor', () => {
       cols: parsed.cols,
       rows: parsed.rows,
     });
-    // work-table(8) + counter(3) + barrel(1) low; stove(2) + hearth(3) + larder(3) tall
-    expect(moveCells.size).toBe(20);
-    expect(sightCells.size).toBe(8);
+    // low: work-table(10) + counter(4) + barrels(2) + stools(2) = 18
+    // tall: stove(3) + hearth(4) + larder(4) = 11
+    expect(moveCells.size).toBe(29);
+    expect(sightCells.size).toBe(11);
   });
 
   it('keeps the wanderer spawn and player spawn off furniture cells', () => {
@@ -49,7 +50,7 @@ describe('KITCHEN_TEST descriptor', () => {
       cols: parsed.cols,
       rows: parsed.rows,
     });
-    expect(moveCells.has('11,5')).toBe(false);
-    expect(moveCells.has('7,14')).toBe(false);
+    expect(moveCells.has('14,6')).toBe(false);
+    expect(moveCells.has('9,16')).toBe(false);
   });
 });
