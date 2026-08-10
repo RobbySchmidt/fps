@@ -1,6 +1,9 @@
 import * as THREE from 'three';
 import { createScene } from './rendering/scene.js';
-import { MAP, parseMap } from './level/mapData.js';
+import { parseMap } from './level/mapData.js';        // MAP import no longer needed
+import { selectLevel } from './level/levels.js';
+import { expandFurniture } from './level/furniture.js';
+import { buildFurniture } from './level/buildFurniture.js';
 import { buildGreybox } from './level/buildGreybox.js';
 import { buildLamps } from './level/buildLamps.js';
 import { moveWithCollision } from './level/collision.js';
@@ -27,10 +30,20 @@ const canvas = document.getElementById('game');
 const overlay = document.getElementById('overlay');
 const { renderer, scene, camera } = createScene(canvas);
 
-const parsed = parseMap(MAP);
-const level = buildGreybox(parsed);
+const levelDef = selectLevel(window.location.search);
+const parsed = parseMap(levelDef.mapText, levelDef.cell);
+const { moveCells, sightCells } = expandFurniture(levelDef.furniture, {
+  wallSet: parsed.wallSet,
+  cols: parsed.cols,
+  rows: parsed.rows,
+});
+const moveSet = new Set([...parsed.wallSet, ...moveCells]);
+const sightSet = new Set([...parsed.wallSet, ...sightCells]);
+const level = buildGreybox(parsed, levelDef.cell);
 scene.add(level);
 scene.add(buildLamps(parsed));
+const furnitureGroup = buildFurniture(levelDef.furniture, levelDef.cell);
+scene.add(furnitureGroup);
 
 scene.add(new THREE.AmbientLight(PALETTE.ambient, 0.85));
 scene.add(camera); // the flashlight is a child of the camera
@@ -44,9 +57,11 @@ const muzzleFlash = createMuzzleFlash(camera);
 const hud = createHud();
 const perf = createPerfOverlay();
 const wandererAI = createWandererAI({
-  spawn: parsed.lamps[0],          // a lamp cell in a far room
-  wallSet: parsed.wallSet,
-  waypoints: parsed.lamps,          // one waypoint per room, already spread out
+  spawn: parsed.wandererSpawn ?? parsed.lamps[0],
+  wallSet: moveSet,
+  sightSet,
+  cell: levelDef.cell,
+  waypoints: parsed.lamps,
 });
 const wanderer = createWandererFigure();
 scene.add(wanderer.group);
@@ -127,8 +142,8 @@ function shoot() {
   if (!revolver.fire(elapsed)) return;
   raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
   const shootables = wandererAI.isDead()
-    ? [...level.children]
-    : [...level.children, ...wanderer.hitMeshes];
+    ? [...level.children, ...furnitureGroup.children]
+    : [...level.children, ...furnitureGroup.children, ...wanderer.hitMeshes];
   const hits = raycaster.intersectObjects(shootables, false);
   if (hits.length > 0) {
     const hit = hits[0];
@@ -155,7 +170,7 @@ const loop = createGameLoop((dt) => {
   if (lock.isLocked()) {
     const wish = computeWishDir(keys, look.yaw);
     const speed = keys.sprint ? SPRINT_SPEED : WALK_SPEED;
-    const next = moveWithCollision(player, wish.x * speed * dt, wish.z * speed * dt, parsed.wallSet);
+    const next = moveWithCollision(player, wish.x * speed * dt, wish.z * speed * dt, moveSet, 0.4, levelDef.cell);
     player.x = next.x;
     player.z = next.z;
     stepVertical(player, dt);
