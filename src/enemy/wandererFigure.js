@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { PALETTE } from '../rendering/palette.js';
-import { createToonMaterial } from '../rendering/toonMaterial.js';
+import { createInkMaterial } from '../rendering/toonMaterial.js';
 import { quantizeTime } from './movementStyle.js';
 
 const ANIMATION_FPS = 10; // everything else runs at 60: this is the "wrong" look
@@ -15,7 +15,7 @@ function bodyPart(material, width, height, depth, x, y, z) {
 
 export function createWandererFigure() {
   const group = new THREE.Group();
-  const skin = createToonMaterial(PALETTE.wanderer);
+  const skin = createInkMaterial(PALETTE.wanderer, 'chitin');
   const eyeMaterial = new THREE.MeshBasicMaterial({ color: PALETTE.wandererEye });
 
   // Hunched torso, head jutting forward and low, mantis blades folded at rest.
@@ -112,8 +112,8 @@ export function createWandererFigure() {
     group.position.y = -collapse * 0.6;
 
     if (flashAmount > 0) flashAmount = Math.max(0, flashAmount - dt * 6);
-    skin.color.setHex(PALETTE.wanderer);
-    if (flashAmount > 0) skin.color.lerp(FLASH_COLOR, flashAmount);
+    skin.emissive.setHex(0x000000);
+    if (flashAmount > 0) skin.emissive.lerp(FLASH_COLOR, flashAmount);
   }
 
   return {
