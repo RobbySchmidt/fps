@@ -16,11 +16,10 @@ local Claude memory.
 | M3b the Wanderer (enemy, health, death/retry) | merged to main, accepted ("scary and fair") |
 | M4a kitchen combat test slice (furniture-as-cover, 1m cells, `?map=kitchen-test`) | merged to main, playtest-validated ("that feels good") |
 | M4a kitchen ART slice (ink grain/hatch textures, composed furniture, room surfaces, windows, chitin Wanderer) | **merged to main, accepted** ("i love the art style") |
-| M4a mansion blueprint — GROUND FLOOR (58×47 @ 1m, 11 furnished rooms, ~90 pieces, wall props, engine perf work) | **implemented on `feature/m4a-ground-floor`, reviewed clean — AWAITING USER PLAYTEST** |
+| M4a mansion blueprint — GROUND FLOOR (58×47 @ 1m, 11 furnished rooms, ~90 pieces, wall props, engine perf work) | **merged to main — PLAYTEST NOT YET DONE** |
 
-Everything through the art slice is on `main` and pushed to GitHub. Fresh
-machine: `npm install`, `npm test` (129 on main, 147 on the ground-floor
-branch), `npm run dev`.
+Everything is on `main`. Fresh machine: `npm install`, `npm test` (expect 147
+passing), `npm run dev`.
 
 **Art direction (decided, session 3): "inked illustration" = direction B.**
 Flat toon + ink outlines PLUS sparse hand-drawn grain/hatching via
@@ -33,12 +32,14 @@ primitives (`src/level/furnitureFigures.js`) with a box fallback. Read
 items include a shared material cache before ten rooms, non-shootable
 windows, basin shape, and playtest watch-items (8-light perf, patch seam).
 
-### IN PROGRESS: M4a "mansion blueprint" — BUILT, AWAITING PLAYTEST
+### IN PROGRESS: M4a "mansion blueprint" — MERGED, PLAYTEST PENDING
 
-All 7 plan tasks executed on `feature/m4a-ground-floor` (9 commits,
-363729e..fe1b112). 147 tests green, production build green, per-task and
-whole-branch reviews clean. **The branch is NOT merged — the next step is the
-user's browser playtest, then merge.**
+All 7 plan tasks executed on `feature/m4a-ground-floor` and merged to `main`
+(user chose to merge before playtesting). 147 tests green, production build
+green, per-task and whole-branch reviews clean. **NEXT STEP: the user plays
+the default map (`npm run dev`, no `?map=` param) and reports back — the
+playtest questions are at the end of the ledger. Nothing has been visually
+verified in a browser yet.**
 
 What shipped: `src/level/groundFloor.js` (the 58×47 map, ~90-piece furniture
 manifest, floor/wall patches, 34 glow-only windows, 15 wall props);
