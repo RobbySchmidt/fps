@@ -1,4 +1,4 @@
-import { it, expect } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { createWandererAI, WANDERER_CONFIG } from '../src/enemy/wandererAI.js';
 import { CELL } from '../src/level/mapData.js';
 
@@ -175,4 +175,70 @@ it('cannot wind up on a player it has no line of sight to', () => {
   const player = { x: 5 * CELL, z: 2 * CELL };
   run(ai, 1, player);
   expect(['windup', 'attack']).not.toContain(ai.state());
+});
+
+describe('two-set furniture behavior at cell 1', () => {
+  // 7x5 map, all floor inside a wall ring; a 1-cell "table" at 3,2
+  // between the monster (1,2) and the player (5,2).
+  function ringWalls(cols, rows) {
+    const set = new Set();
+    for (let c = 0; c < cols; c++) { set.add(`${c},0`); set.add(`${c},${rows - 1}`); }
+    for (let r = 0; r < rows; r++) { set.add(`0,${r}`); set.add(`${cols - 1},${r}`); }
+    return set;
+  }
+
+  it('sees the player across low cover and paths around it', () => {
+    const walls = ringWalls(7, 5);
+    const moveSet = new Set([...walls, '3,2']); // low table blocks movement only
+    const sightSet = walls;                      // ...but not sight
+    const ai = createWandererAI({
+      spawn: { x: 1, z: 2 },
+      wallSet: moveSet,
+      sightSet,
+      cell: 1,
+      waypoints: [{ x: 1, z: 2 }],
+      // within proximityRange the facing cone is skipped — otherwise the monster
+      // starts facing away and the sight-set behavior never gets exercised
+      config: { proximityRange: 100 },
+    });
+    ai.update(0.016, { x: 5, z: 2 });
+    expect(ai.state()).toBe('chase');
+    // let it move: it must make progress toward the player without ever
+    // standing on the blocked table cell
+    for (let i = 0; i < 120; i++) {
+      ai.update(0.016, { x: 5, z: 2 });
+      const p = ai.position();
+      expect(Math.round(p.x) === 3 && Math.round(p.z) === 2).toBe(false);
+    }
+    const p = ai.position();
+    expect(Math.hypot(5 - p.x, 2 - p.z)).toBeLessThan(4);
+  });
+
+  it('does not see the player across tall cover', () => {
+    const walls = ringWalls(7, 5);
+    const moveSet = new Set([...walls, '3,1', '3,2', '3,3']); // tall shelf wall-to-wall
+    const sightSet = moveSet;
+    const ai = createWandererAI({
+      spawn: { x: 1, z: 2 },
+      wallSet: moveSet,
+      sightSet,
+      cell: 1,
+      waypoints: [{ x: 1, z: 2 }],
+      config: { proximityRange: 100 }, // neutralize the facing cone: only sight blocking matters here
+    });
+    ai.update(0.016, { x: 5, z: 2 });
+    expect(ai.state()).toBe('patrol');
+  });
+
+  it('defaults sightSet to wallSet and cell to CELL (existing behavior)', () => {
+    const walls = ringWalls(7, 5);
+    const ai = createWandererAI({
+      spawn: { x: 1 * CELL, z: 2 * CELL },
+      wallSet: new Set([...walls, '3,1', '3,2', '3,3']),
+      waypoints: [{ x: 1 * CELL, z: 2 * CELL }],
+      config: { proximityRange: 100 }, // neutralize the facing cone here too
+    });
+    ai.update(0.016, { x: 5 * CELL, z: 2 * CELL });
+    expect(ai.state()).toBe('patrol'); // the blocker also blocks sight by default
+  });
 });

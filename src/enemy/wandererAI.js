@@ -1,6 +1,7 @@
 import { moveWithCollision } from '../level/collision.js';
 import { findPath, worldToCell, cellToWorld, hasLineOfSight } from '../level/pathfinding.js';
 import { burstFreezeFactor, serpentineDirection } from './movementStyle.js';
+import { CELL } from '../level/mapData.js';
 
 export const WANDERER_CONFIG = {
   maxHealth: 100,
@@ -43,7 +44,7 @@ function angleDifference(a, b) {
   return delta;
 }
 
-export function createWandererAI({ spawn, wallSet, waypoints, config = {} }) {
+export function createWandererAI({ spawn, wallSet, waypoints, config = {}, cell = CELL, sightSet = wallSet }) {
   const cfg = { ...WANDERER_CONFIG, ...config };
 
   let state = 'patrol';
@@ -74,17 +75,17 @@ export function createWandererAI({ spawn, wallSet, waypoints, config = {} }) {
     if (repathTimer <= 0) {
       repathTimer = cfg.repathInterval;
       const route = findPath(
-        worldToCell(position.x, position.z),
-        worldToCell(goal.x, goal.z),
+        worldToCell(position.x, position.z, cell),
+        worldToCell(goal.x, goal.z, cell),
         wallSet,
       );
       path = route ? route.slice(1) : [];
     }
 
-    let step = path.length > 0 ? cellToWorld(path[0].c, path[0].r) : goal;
+    let step = path.length > 0 ? cellToWorld(path[0].c, path[0].r, cell) : goal;
     if (path.length > 0 && Math.hypot(step.x - position.x, step.z - position.z) < cfg.arriveRadius) {
       path.shift();
-      step = path.length > 0 ? cellToWorld(path[0].c, path[0].r) : goal;
+      step = path.length > 0 ? cellToWorld(path[0].c, path[0].r, cell) : goal;
     }
 
     const direction = serpentine
@@ -99,6 +100,7 @@ export function createWandererAI({ spawn, wallSet, waypoints, config = {} }) {
       direction.z * speed * dt,
       wallSet,
       cfg.radius,
+      cell,
     );
   }
 
@@ -111,7 +113,7 @@ export function createWandererAI({ spawn, wallSet, waypoints, config = {} }) {
       const toPlayer = Math.atan2(dx, dz);
       if (Math.abs(angleDifference(toPlayer, facing)) > cfg.sightHalfAngle) return false;
     }
-    return hasLineOfSight(position, player, wallSet);
+    return hasLineOfSight(position, player, sightSet, cell);
   }
 
   function update(dt, player) {
@@ -140,7 +142,7 @@ export function createWandererAI({ spawn, wallSet, waypoints, config = {} }) {
         swingSpent = true;
         if (
           distance <= cfg.meleeRange + cfg.attackReachBonus &&
-          hasLineOfSight(position, player, wallSet)
+          hasLineOfSight(position, player, sightSet, cell)
         ) {
           events.attacked = true;
         }
@@ -159,7 +161,7 @@ export function createWandererAI({ spawn, wallSet, waypoints, config = {} }) {
     }
 
     if (state === 'chase') {
-      if (distance <= cfg.meleeRange && hasLineOfSight(position, player, wallSet)) {
+      if (distance <= cfg.meleeRange && hasLineOfSight(position, player, sightSet, cell)) {
         setState('windup');
         return events;
       }
@@ -210,6 +212,7 @@ export function createWandererAI({ spawn, wallSet, waypoints, config = {} }) {
         away.z * cfg.knockback,
         wallSet,
         cfg.radius,
+        cell,
       );
     }
 
