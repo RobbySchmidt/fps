@@ -30,6 +30,6 @@ it('slides along a wall when one axis is blocked', () => {
 
 it('does not mutate the input position', () => {
   const pos = { x: 0, z: 0 };
-  moveWithCollision(pos, 0.5, 0.5, wallSet);
+  moveWithCollision(pos, 0.5, 0.5, wallSet, 0.4, TEST_CELL);
   expect(pos).toEqual({ x: 0, z: 0 });
 });

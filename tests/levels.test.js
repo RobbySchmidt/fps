@@ -77,10 +77,10 @@ describe('KITCHEN_TEST descriptor', () => {
       }
     });
 
-    // The "mansion has no art-slice data" assertion that used to live here is
-    // superseded: the blueprint ground floor (M4a) now ships real
-    // floorPatches/wallPatches/windows/wallProps, covered by the
-    // 'GROUND_FLOOR (mansion) descriptor' block below.
+    it('keeps windowLights kitchen-only (mansion floor is glow-only)', () => {
+      expect(MANSION.windowLights).toBeUndefined();
+      expect(KITCHEN_TEST.windowLights).toBe(true);
+    });
   });
 });
 

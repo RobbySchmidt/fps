@@ -23,6 +23,10 @@ it('converts between world metres and grid cells', () => {
   expect(cellToWorld(2, 3)).toEqual({ x: 2 * CELL, z: 3 * CELL });
 });
 
+it('defaults worldToCell to mapData.CELL when no cell arg is given', () => {
+  expect(worldToCell(4 * CELL, 6 * CELL)).toEqual({ c: 4, r: 6 });
+});
+
 it('finds a straight path down an open column', () => {
   const path = findPath({ c: 1, r: 1 }, { c: 1, r: 3 }, wallSet);
   expect(path).toEqual([{ c: 1, r: 1 }, { c: 1, r: 2 }, { c: 1, r: 3 }]);
