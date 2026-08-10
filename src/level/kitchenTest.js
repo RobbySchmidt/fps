@@ -44,4 +44,20 @@ export const KITCHEN_TEST = {
   mapText: KITCHEN_TEST_MAP,
   cell: 1,
   furniture: FURNITURE,
+  // Art slice: kitchen room gets stone floor + stone-tinted walls; the
+  // dining stub keeps defaults, so one walk shows before/after.
+  floorPatches: [
+    { x0: 2, z0: 2, x1: 17, z1: 11, family: 'stone', color: PALETTE.kitchenFloor },
+  ],
+  wallPatches: [
+    { x0: 1, z0: 1, x1: 18, z1: 12, family: 'stone', color: PALETTE.kitchenWall },
+  ],
+  // Wall-cell windows: two on the north wall (face south into the room),
+  // two on the west wall (face east) — matches the approved room mockup.
+  windows: [
+    { x: 9, z: 1, facing: 's' },
+    { x: 10, z: 1, facing: 's' },
+    { x: 1, z: 8, facing: 'e' },
+    { x: 1, z: 9, facing: 'e' },
+  ],
 };

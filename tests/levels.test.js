@@ -53,4 +53,32 @@ describe('KITCHEN_TEST descriptor', () => {
     expect(moveCells.has('14,6')).toBe(false);
     expect(moveCells.has('9,16')).toBe(false);
   });
+
+  describe('KITCHEN_TEST art-slice data', () => {
+    it('declares kitchen floor and wall patches within map bounds', () => {
+      for (const p of [...KITCHEN_TEST.floorPatches, ...KITCHEN_TEST.wallPatches]) {
+        expect(p.x0).toBeLessThanOrEqual(p.x1);
+        expect(p.z0).toBeLessThanOrEqual(p.z1);
+        expect(p.x0).toBeGreaterThanOrEqual(0);
+        expect(p.z0).toBeGreaterThanOrEqual(0);
+        expect(p.x1).toBeLessThan(parsed.cols);
+        expect(p.z1).toBeLessThan(parsed.rows);
+        expect(typeof p.color).toBe('number');
+        expect(['wood', 'stone', 'iron']).toContain(p.family);
+      }
+    });
+
+    it('places every window on a wall cell', () => {
+      expect(KITCHEN_TEST.windows.length).toBeGreaterThan(0);
+      for (const w of KITCHEN_TEST.windows) {
+        expect(parsed.wallSet.has(`${w.x},${w.z}`)).toBe(true);
+        expect(['n', 's', 'e', 'w']).toContain(w.facing);
+      }
+    });
+
+    it('gives the mansion no art-slice data', () => {
+      expect(MANSION.floorPatches).toBeUndefined();
+      expect(MANSION.windows).toBeUndefined();
+    });
+  });
 });
