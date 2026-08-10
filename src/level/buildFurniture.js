@@ -2,19 +2,32 @@ import * as THREE from 'three';
 import { CELL } from './mapData.js';
 import { furnitureBox } from './furniture.js';
 import { createToonMaterial } from '../rendering/toonMaterial.js';
+import { hasFigure, buildFigure } from './furnitureFigures.js';
 
-// One toon box per piece; the post stack inks the outlines like everything else.
-// Children stay flat (no sub-groups): the shot raycast is non-recursive.
+// Composed figures where a builder exists, box fallback otherwise. Children
+// stay one object per piece; group.userData.hitMeshes is the flat mesh list
+// for the (non-recursive) shot raycast.
 export function buildFurniture(furniture, cell = CELL) {
   const group = new THREE.Group();
+  const hitMeshes = [];
   for (const item of furniture) {
-    const box = furnitureBox(item, cell);
-    const mesh = new THREE.Mesh(
-      new THREE.BoxGeometry(box.w, box.h, box.d),
-      createToonMaterial(item.color),
-    );
-    mesh.position.set(box.x, box.y, box.z);
-    group.add(mesh);
+    const b = furnitureBox(item, cell);
+    let obj;
+    if (hasFigure(item.id)) {
+      obj = buildFigure(item, cell);
+      obj.position.set(b.x, 0, b.z);
+    } else {
+      obj = new THREE.Mesh(
+        new THREE.BoxGeometry(b.w, b.h, b.d),
+        createToonMaterial(item.color),
+      );
+      obj.position.set(b.x, b.y, b.z);
+    }
+    group.add(obj);
+    obj.traverse((node) => {
+      if (node.isMesh) hitMeshes.push(node);
+    });
   }
+  group.userData.hitMeshes = hitMeshes;
   return group;
 }
