@@ -35,8 +35,8 @@ const FURNITURE = [
   { id: 'larder', kind: 'tall', x0: 2, z0: 11, x1: 5, z1: 11, color: PALETTE.furnitureWood },
   { id: 'barrel', kind: 'low', x0: 17, z0: 5, x1: 17, z1: 5, color: PALETTE.furnitureWood },
   { id: 'barrel-2', kind: 'low', x0: 17, z0: 6, x1: 17, z1: 6, color: PALETTE.furnitureWood },
-  { id: 'stool', kind: 'low', x0: 7, z0: 6, x1: 7, z1: 6, color: PALETTE.furnitureWood },
-  { id: 'stool-2', kind: 'low', x0: 13, z0: 8, x1: 13, z1: 8, color: PALETTE.furnitureWood },
+  { id: 'stool', kind: 'low', height: 0.45, x0: 7, z0: 6, x1: 7, z1: 6, color: PALETTE.furnitureWood },
+  { id: 'stool-2', kind: 'low', height: 0.45, x0: 13, z0: 7, x1: 13, z1: 7, color: PALETTE.furnitureWood },
 ];
 
 export const KITCHEN_TEST = {

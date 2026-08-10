@@ -32,7 +32,7 @@ export function expandFurniture(items, { wallSet, cols, rows }) {
 }
 
 export function furnitureBox(item, cell) {
-  const h = FURNITURE_HEIGHTS[item.kind];
+  const h = item.height ?? FURNITURE_HEIGHTS[item.kind];
   return {
     w: (item.x1 - item.x0 + 1) * cell,
     h,

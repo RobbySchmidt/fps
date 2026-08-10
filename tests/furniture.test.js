@@ -62,6 +62,12 @@ describe('furnitureBox', () => {
     expect(box).toEqual({ w: 4, h: FURNITURE_HEIGHTS.low, d: 2, x: 7.5, y: FURNITURE_HEIGHTS.low / 2, z: 5.5 });
   });
 
+  it('lets an item override its kind height', () => {
+    const box = furnitureBox({ id: 'chair', kind: 'low', height: 0.45, x0: 1, z0: 1, x1: 1, z1: 1 }, 1);
+    expect(box.h).toBe(0.45);
+    expect(box.y).toBe(0.225);
+  });
+
   it('scales with the cell size', () => {
     const box = furnitureBox({ id: 'b', kind: 'tall', x0: 1, z0: 1, x1: 1, z1: 1 }, 2);
     expect(box.w).toBe(2);
