@@ -15,7 +15,7 @@ const SILL = 1.0;
 const WIN_W = 0.9;
 const WIN_H = 1.2;
 
-export function buildWindows(windows, cell = CELL) {
+export function buildWindows(windows, cell = CELL, { lights = true } = {}) {
   const group = new THREE.Group();
   if (!windows.length) return group;
   const frameMat = createToonMaterial(PALETTE.ink);
@@ -50,9 +50,11 @@ export function buildWindows(windows, cell = CELL) {
       group.add(bar);
     }
 
-    const light = new THREE.PointLight(PALETTE.moonlight, 2, 4, 1.5);
-    light.position.set(x * cell + n.x * (cell / 2 + 0.4), cy, z * cell + n.z * (cell / 2 + 0.4));
-    group.add(light);
+    if (lights) {
+      const light = new THREE.PointLight(PALETTE.moonlight, 2, 4, 1.5);
+      light.position.set(x * cell + n.x * (cell / 2 + 0.4), cy, z * cell + n.z * (cell / 2 + 0.4));
+      group.add(light);
+    }
   }
   return group;
 }
