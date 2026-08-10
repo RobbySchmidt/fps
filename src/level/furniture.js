@@ -8,6 +8,12 @@ export function expandFurniture(items, { wallSet, cols, rows }) {
   const moveCells = new Set();
   const sightCells = new Set();
   for (const item of items) {
+    if (!(item.kind in FURNITURE_HEIGHTS)) {
+      throw new Error(`furniture "${item.id}" has unknown kind "${item.kind}"`);
+    }
+    if (item.x1 < item.x0 || item.z1 < item.z0) {
+      throw new Error(`furniture "${item.id}" has an inverted footprint`);
+    }
     for (let z = item.z0; z <= item.z1; z++) {
       for (let x = item.x0; x <= item.x1; x++) {
         if (x < 0 || z < 0 || x >= cols || z >= rows) {

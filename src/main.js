@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { createScene } from './rendering/scene.js';
-import { parseMap } from './level/mapData.js';        // MAP import no longer needed
+import { parseMap } from './level/mapData.js';
 import { selectLevel } from './level/levels.js';
 import { expandFurniture } from './level/furniture.js';
 import { buildFurniture } from './level/buildFurniture.js';

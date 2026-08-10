@@ -42,6 +42,18 @@ describe('expandFurniture', () => {
       expandFurniture([{ id: 'runaway', kind: 'low', x0: 9, z0: 9, x1: 10, z1: 9 }], bounds),
     ).toThrow(/runaway/);
   });
+
+  it('throws on an unknown kind', () => {
+    expect(() =>
+      expandFurniture([{ id: 'typo', kind: 'tal', x0: 1, z0: 1, x1: 1, z1: 1 }], bounds),
+    ).toThrow(/typo/);
+  });
+
+  it('throws on an inverted footprint', () => {
+    expect(() =>
+      expandFurniture([{ id: 'backwards', kind: 'low', x0: 3, z0: 1, x1: 2, z1: 1 }], bounds),
+    ).toThrow(/backwards/);
+  });
 });
 
 describe('furnitureBox', () => {

@@ -211,7 +211,7 @@ describe('two-set furniture behavior at cell 1', () => {
       expect(Math.round(p.x) === 3 && Math.round(p.z) === 2).toBe(false);
     }
     const p = ai.position();
-    expect(Math.hypot(5 - p.x, 2 - p.z)).toBeLessThan(4);
+    expect(Math.hypot(5 - p.x, 2 - p.z)).toBeLessThan(2.5);
   });
 
   it('does not see the player across tall cover', () => {
