@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { createInkTexture } from './inkTextures.js';
 
 let sharedGradientMap = null;
 
@@ -14,4 +15,20 @@ export function createToonGradientMap() {
 export function createToonMaterial(colorHex) {
   if (!sharedGradientMap) sharedGradientMap = createToonGradientMap();
   return new THREE.MeshToonMaterial({ color: colorHex, gradientMap: sharedGradientMap });
+}
+
+// wood/stone/iron: greyscale multiply map, tinted by material.color.
+// chitin: baked-color map, white material color (near-black multiply would
+// hide both strokes and the hit flash — see the art-slice spec).
+// In Node (no canvas) the texture is null and this degrades to a plain
+// toon material so the test suite never touches canvas.
+export function createInkMaterial(colorHex, family) {
+  const texture = createInkTexture(family);
+  if (!texture) return createToonMaterial(colorHex);
+  if (!sharedGradientMap) sharedGradientMap = createToonGradientMap();
+  return new THREE.MeshToonMaterial({
+    color: family === 'chitin' ? 0xffffff : colorHex,
+    map: texture,
+    gradientMap: sharedGradientMap,
+  });
 }

@@ -14,4 +14,12 @@ export const PALETTE = {
   furnitureWood: 0x5e4a36,  // oak table, barrels, larder shelving
   furnitureIron: 0x3a3e46,  // cast-iron stove, hearth metalwork
   furnitureStone: 0x555c60, // stone counter
+  kitchenFloor: 0x4a4d52,     // worn stone, kitchen slice
+  kitchenWall: 0x62676e,      // stone-tinted kitchen walls
+  moonlight: 0xbfd0e6,        // window glow + spill
+  furnitureIronDark: 0x2e3238, // oven doors, hob rings, barrel hoops
+  firebox: 0x14171c,          // hearth interior, basin inset
+  jarOchre: 0x6a5f4a,         // larder jars
+  jarTeal: 0x4a5e5a,
+  jarRust: 0x5e4a4a,
 };
