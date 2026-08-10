@@ -28,6 +28,7 @@ export function parseMap(text, cell = CELL) {
   const walls = [];
   const wallSet = new Set();
   const lamps = [];
+  const doorCells = new Set();
   let spawn = null;
   let wandererSpawn = null;
 
@@ -42,6 +43,8 @@ export function parseMap(text, cell = CELL) {
         lamps.push({ x: c * cell, z: r * cell });
       } else if (ch === 'W') {
         wandererSpawn = { x: c * cell, z: r * cell };
+      } else if (ch === 'D') {
+        doorCells.add(`${c},${r}`);
       }
     });
   });
@@ -49,5 +52,5 @@ export function parseMap(text, cell = CELL) {
   if (!spawn) throw new Error('Map has no spawn point (S)');
 
   const cols = Math.max(...lines.map((l) => l.length));
-  return { walls, wallSet, spawn, lamps, wandererSpawn, cols, rows: lines.length };
+  return { walls, wallSet, spawn, lamps, wandererSpawn, doorCells, cols, rows: lines.length };
 }

@@ -83,3 +83,15 @@ describe('parseMap cell size and wanderer spawn', () => {
     expect(parseMap(MAP).wandererSpawn).toBeNull();
   });
 });
+
+describe('door cells', () => {
+  it('records D cells as walkable doorways', () => {
+    const parsed = parseMap('#####\n#S.D#\n#####', 1);
+    expect(parsed.doorCells.has('3,1')).toBe(true);
+    expect(parsed.wallSet.has('3,1')).toBe(false);
+  });
+
+  it('returns an empty doorCells set when the map has no D', () => {
+    expect(parseMap('###\n#S#\n###', 1).doorCells.size).toBe(0);
+  });
+});
