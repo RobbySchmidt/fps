@@ -6,6 +6,7 @@ import { expandFurniture } from './level/furniture.js';
 import { buildFurniture } from './level/buildFurniture.js';
 import { buildGreybox } from './level/buildGreybox.js';
 import { buildLamps } from './level/buildLamps.js';
+import { buildWindows } from './level/buildWindows.js';
 import { moveWithCollision } from './level/collision.js';
 import { createGameLoop } from './core/gameLoop.js';
 import { createLook, applyLookDelta } from './player/look.js';
@@ -39,11 +40,15 @@ const { moveCells, sightCells } = expandFurniture(levelDef.furniture, {
 });
 const moveSet = new Set([...parsed.wallSet, ...moveCells]);
 const sightSet = new Set([...parsed.wallSet, ...sightCells]);
-const level = buildGreybox(parsed, levelDef.cell);
+const level = buildGreybox(parsed, levelDef.cell, {
+  floorPatches: levelDef.floorPatches ?? [],
+  wallPatches: levelDef.wallPatches ?? [],
+});
 scene.add(level);
 scene.add(buildLamps(parsed));
 const furnitureGroup = buildFurniture(levelDef.furniture, levelDef.cell);
 scene.add(furnitureGroup);
+scene.add(buildWindows(levelDef.windows ?? [], levelDef.cell));
 
 scene.add(new THREE.AmbientLight(PALETTE.ambient, 0.85));
 scene.add(camera); // the flashlight is a child of the camera
@@ -142,8 +147,8 @@ function shoot() {
   if (!revolver.fire(elapsed)) return;
   raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
   const shootables = wandererAI.isDead()
-    ? [...level.children, ...furnitureGroup.children]
-    : [...level.children, ...furnitureGroup.children, ...wanderer.hitMeshes];
+    ? [...level.children, ...furnitureGroup.userData.hitMeshes]
+    : [...level.children, ...furnitureGroup.userData.hitMeshes, ...wanderer.hitMeshes];
   const hits = raycaster.intersectObjects(shootables, false);
   if (hits.length > 0) {
     const hit = hits[0];
