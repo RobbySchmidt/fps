@@ -59,7 +59,7 @@ function hearth(item, w, d) {
   g.add(box(stone, 0.3, 1.6, d, w / 2 - 0.15, 0.8, 0));
   g.add(box(stone, w, 0.3, d, 0, 1.75, 0));                       // lintel, tops at 1.9
   g.add(box(dark, w - 0.6, 1.4, 0.1, 0, 0.7, -d / 2 + 0.06));     // firebox back
-  g.add(box(stone, w + 0.1, 0.08, d + 0.1, 0, 1.55, 0.03));       // mantel shelf
+  g.add(box(stone, w, 0.08, d, 0, 1.55, 0));                       // mantel shelf
   g.add(cylinder(iron, 0.02, w - 0.8, 0, 1.35, 0).rotateOnAxis(new THREE.Vector3(0, 0, 1), Math.PI / 2)); // hanging bar
   const kettle = new THREE.Mesh(new THREE.SphereGeometry(0.14, 8, 6), iron);
   kettle.position.set(0, 0.95, 0);
