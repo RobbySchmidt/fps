@@ -10,7 +10,7 @@ export function buildGreybox(parsed, cell = CELL, { floorPatches = [], wallPatch
 
   const wallGeo = new THREE.BoxGeometry(cell, WALL_HEIGHT, cell);
   const wallMat = createToonMaterial(PALETTE.wall);
-  const patchMats = wallPatches.map((p) => createInkMaterial(p.color, p.family));
+  const patchMats = wallPatches.map((p) => createInkMaterial(p.color, p.family, cell / 2, 1.5));
   const inPatch = (p, c, r) => c >= p.x0 && c <= p.x1 && r >= p.z0 && r <= p.z1;
   for (const { c, r } of parsed.walls) {
     const patchIndex = wallPatches.findIndex((p) => inPatch(p, c, r));
@@ -45,7 +45,7 @@ export function buildGreybox(parsed, cell = CELL, { floorPatches = [], wallPatch
     const pd = (p.z1 - p.z0 + 1) * cell;
     const patch = new THREE.Mesh(
       new THREE.PlaneGeometry(pw, pd),
-      createInkMaterial(p.color, p.family),
+      createInkMaterial(p.color, p.family, pw / 2, pd / 2),
     );
     patch.rotation.x = -Math.PI / 2;
     patch.position.set(

@@ -41,14 +41,22 @@ function drawStone(ctx) {
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, SIZE, SIZE);
   strokeStyle(ctx, 'rgba(0,0,0,0.20)', 1.5);
-  // speckle dashes
+  // speckle dashes (wrapped on x: dashes near the right edge continue on the left)
   for (let i = 0; i < 60; i++) {
     const x = (i * 97) % SIZE;
     const y = (i * 61 + 23) % SIZE;
+    const dx = 4 + (i % 5);
+    const dy = (i % 3) - 1;
     ctx.beginPath();
     ctx.moveTo(x, y);
-    ctx.lineTo(x + 4 + (i % 5), y + (i % 3) - 1);
+    ctx.lineTo(x + dx, y + dy);
     ctx.stroke();
+    if (x + dx > SIZE) {
+      ctx.beginPath();
+      ctx.moveTo(x - SIZE, y);
+      ctx.lineTo(x - SIZE + dx, y + dy);
+      ctx.stroke();
+    }
   }
   // two sparse cross-hatch patches
   strokeStyle(ctx, 'rgba(0,0,0,0.14)', 1);
@@ -66,14 +74,22 @@ function drawIron(ctx) {
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, SIZE, SIZE);
   strokeStyle(ctx, 'rgba(0,0,0,0.16)', 1);
+  // scratches (wrapped on x: long scratches starting near the right edge continue on the left)
   for (let i = 0; i < 22; i++) {
     const x = (i * 83 + 11) % SIZE;
     const y = (i * 47 + 31) % SIZE;
     const len = 14 + (i % 4) * 8;
+    const dy = (i % 3) - 1;
     ctx.beginPath();
     ctx.moveTo(x, y);
-    ctx.lineTo(x + len, y + (i % 3) - 1);
+    ctx.lineTo(x + len, y + dy);
     ctx.stroke();
+    if (x + len > SIZE) {
+      ctx.beginPath();
+      ctx.moveTo(x - SIZE, y);
+      ctx.lineTo(x - SIZE + len, y + dy);
+      ctx.stroke();
+    }
   }
   // rivet dots near tile edges (tile-safe: same offset both sides)
   ctx.fillStyle = 'rgba(0,0,0,0.30)';
@@ -90,9 +106,12 @@ function drawIron(ctx) {
 
 function drawChitin(ctx) {
   const base = '#' + PALETTE.wanderer.toString(16).padStart(6, '0');
+  const ridge = '#' + PALETTE.chitinRidge.toString(16).padStart(6, '0');
+  const shadow = '#' + PALETTE.chitinShadow.toString(16).padStart(6, '0');
   ctx.fillStyle = base;
   ctx.fillRect(0, 0, SIZE, SIZE);
-  strokeStyle(ctx, '#232a33', 1.4); // ~2x luminance of base, still near-black
+  strokeStyle(ctx, ridge, 1.4); // ~2x luminance of base, still near-black
+  // curves (wrapped on y: curves starting near the bottom edge continue at the top)
   for (let i = 0; i < 14; i++) {
     const x = (i * 71 + 19) % SIZE;
     const y = (i * 53 + 41) % SIZE;
@@ -100,16 +119,31 @@ function drawChitin(ctx) {
     ctx.moveTo(x, y);
     ctx.quadraticCurveTo(x + 18, y + 26, x + 8, y + 54);
     ctx.stroke();
+    if (y + 54 > SIZE) {
+      ctx.beginPath();
+      ctx.moveTo(x, y - SIZE);
+      ctx.quadraticCurveTo(x + 18, y - SIZE + 26, x + 8, y - SIZE + 54);
+      ctx.stroke();
+    }
   }
-  strokeStyle(ctx, '#1c222a', 1);
+  strokeStyle(ctx, shadow, 1);
+  // hatch (wrapped on x: strokes reaching past the left edge continue on the right)
   for (let i = 0; i < 4; i++) {
     const px = (i * 113 + 37) % SIZE;
     const py = (i * 149 + 61) % SIZE;
     for (let j = 0; j < 5; j++) {
+      const x1 = px + j * 5;
+      const x2 = px + j * 5 - 12;
       ctx.beginPath();
-      ctx.moveTo(px + j * 5, py);
-      ctx.lineTo(px + j * 5 - 12, py + 18);
+      ctx.moveTo(x1, py);
+      ctx.lineTo(x2, py + 18);
       ctx.stroke();
+      if (x2 < 0) {
+        ctx.beginPath();
+        ctx.moveTo(x1 + SIZE, py);
+        ctx.lineTo(x2 + SIZE, py + 18);
+        ctx.stroke();
+      }
     }
   }
 }
@@ -124,12 +158,15 @@ export function createInkTexture(family) {
   const canvas = document.createElement('canvas');
   canvas.width = SIZE;
   canvas.height = SIZE;
-  draw(canvas.getContext('2d'));
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return null; // jsdom-style environments: document exists but no 2d context
+  draw(ctx);
   const texture = new THREE.CanvasTexture(canvas);
   texture.wrapS = THREE.RepeatWrapping;
   texture.wrapT = THREE.RepeatWrapping;
   texture.magFilter = THREE.NearestFilter;
   texture.minFilter = THREE.NearestFilter;
+  texture.colorSpace = THREE.SRGBColorSpace;
   cache.set(family, texture);
   return texture;
 }

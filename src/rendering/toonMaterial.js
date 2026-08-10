@@ -22,13 +22,16 @@ export function createToonMaterial(colorHex) {
 // hide both strokes and the hit flash — see the art-slice spec).
 // In Node (no canvas) the texture is null and this degrades to a plain
 // toon material so the test suite never touches canvas.
-export function createInkMaterial(colorHex, family) {
-  const texture = createInkTexture(family);
-  if (!texture) return createToonMaterial(colorHex);
+export function createInkMaterial(colorHex, family, repeatU = 1, repeatV = 1) {
+  const base = createInkTexture(family);
+  if (!base) return createToonMaterial(colorHex);
   if (!sharedGradientMap) sharedGradientMap = createToonGradientMap();
+  const map = base.clone(); // shares the image source (cheap); repeat is per-instance
+  map.repeat.set(repeatU, repeatV);
+  map.needsUpdate = true;
   return new THREE.MeshToonMaterial({
     color: family === 'chitin' ? 0xffffff : colorHex,
-    map: texture,
+    map,
     gradientMap: sharedGradientMap,
   });
 }

@@ -25,8 +25,9 @@ function cylinder(material, radius, h, x, y, z, segments = 10) {
 
 function workTable(item, w, d) {
   const wood = createInkMaterial(item.color, 'wood');
+  const top = createInkMaterial(item.color, 'wood', w / 2, d / 2);
   const g = new THREE.Group();
-  g.add(box(wood, w, 0.12, d, 0, 0.84, 0));
+  g.add(box(top, w, 0.12, d, 0, 0.84, 0));
   const lx = w / 2 - 0.15;
   const lz = d / 2 - 0.15;
   for (const [sx, sz] of [[-1, -1], [-1, 1], [1, -1], [1, 1]]) {
@@ -43,7 +44,7 @@ function stove(item, w, d) {
   const g = new THREE.Group();
   g.add(box(iron, w, 1.1, d * 0.9, 0, 0.55, 0));
   g.add(box(dark, w * 0.5, 0.5, 0.05, 0, 0.5, d * 0.45 + 0.02)); // oven door, faces the room (+z)
-  g.add(box(dark, 0.3, 0.05, 0.04, 0, 0.62, d * 0.45 + 0.06));   // handle
+  g.add(box(dark, 0.3, 0.05, 0.04, 0, 0.62, d * 0.45 + 0.02));   // handle
   g.add(cylinder(dark, 0.14, 0.05, -w / 4, 1.13, 0));            // hob ring
   g.add(cylinder(dark, 0.14, 0.05, w / 4, 1.13, 0));
   g.add(cylinder(iron, 0.09, 1.7, w / 4, 1.95, -d / 4));         // stovepipe, tops out at 2.8
@@ -62,8 +63,9 @@ function hearth(item, w, d) {
   g.add(box(stone, w, 0.08, d, 0, 1.55, 0));                       // mantel shelf
   g.add(cylinder(iron, 0.02, w - 0.8, 0, 1.35, 0).rotateOnAxis(new THREE.Vector3(0, 0, 1), Math.PI / 2)); // hanging bar
   const kettle = new THREE.Mesh(new THREE.SphereGeometry(0.14, 8, 6), iron);
-  kettle.position.set(0, 0.95, 0);
+  kettle.position.set(0, 1.18, 0);
   g.add(kettle);
+  g.add(cylinder(iron, 0.012, 0.1, 0, 1.3, 0, 6)); // link chain: connects hanging bar to kettle top
   return g;
 }
 
@@ -137,7 +139,7 @@ function baseId(id) {
 }
 
 export function hasFigure(id) {
-  return baseId(id) in BUILDERS;
+  return Object.hasOwn(BUILDERS, baseId(id));
 }
 
 export function buildFigure(item, cell) {
