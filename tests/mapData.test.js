@@ -1,4 +1,4 @@
-import { it, expect } from 'vitest';
+import { it, expect, describe } from 'vitest';
 import { parseMap, MAP, CELL } from '../src/level/mapData.js';
 
 const SMALL = `
@@ -53,4 +53,33 @@ it('collects lamp positions as walkable floor', () => {
 
 it('mansion MAP has six lamps', () => {
   expect(parseMap(MAP).lamps.length).toBe(6);
+});
+
+describe('parseMap cell size and wanderer spawn', () => {
+  const TINY = `
+#####
+#S.W#
+#..L#
+#####
+`;
+
+  it('scales world coordinates by the cell parameter', () => {
+    const parsed = parseMap(TINY, 1);
+    expect(parsed.spawn).toEqual({ x: 1, z: 1 });
+    expect(parsed.lamps).toEqual([{ x: 3, z: 2 }]);
+  });
+
+  it('defaults to CELL when no cell is given', () => {
+    const parsed = parseMap(TINY);
+    expect(parsed.spawn).toEqual({ x: 1 * CELL, z: 1 * CELL });
+  });
+
+  it('parses W as the wanderer spawn in world coordinates', () => {
+    const parsed = parseMap(TINY, 1);
+    expect(parsed.wandererSpawn).toEqual({ x: 3, z: 1 });
+  });
+
+  it('returns null wandererSpawn when the map has no W', () => {
+    expect(parseMap(MAP).wandererSpawn).toBeNull();
+  });
 });

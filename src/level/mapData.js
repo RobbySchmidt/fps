@@ -20,7 +20,7 @@ export const MAP = `
 ########################
 `;
 
-export function parseMap(text) {
+export function parseMap(text, cell = CELL) {
   const lines = text.split(/\r?\n/);
   while (lines.length && lines[0].trim() === '') lines.shift();
   while (lines.length && lines[lines.length - 1].trim() === '') lines.pop();
@@ -29,6 +29,7 @@ export function parseMap(text) {
   const wallSet = new Set();
   const lamps = [];
   let spawn = null;
+  let wandererSpawn = null;
 
   lines.forEach((line, r) => {
     [...line].forEach((ch, c) => {
@@ -36,9 +37,11 @@ export function parseMap(text) {
         walls.push({ c, r });
         wallSet.add(`${c},${r}`);
       } else if (ch === 'S') {
-        spawn = { x: c * CELL, z: r * CELL };
+        spawn = { x: c * cell, z: r * cell };
       } else if (ch === 'L') {
-        lamps.push({ x: c * CELL, z: r * CELL });
+        lamps.push({ x: c * cell, z: r * cell });
+      } else if (ch === 'W') {
+        wandererSpawn = { x: c * cell, z: r * cell };
       }
     });
   });
@@ -46,5 +49,5 @@ export function parseMap(text) {
   if (!spawn) throw new Error('Map has no spawn point (S)');
 
   const cols = Math.max(...lines.map((l) => l.length));
-  return { walls, wallSet, spawn, lamps, cols, rows: lines.length };
+  return { walls, wallSet, spawn, lamps, wandererSpawn, cols, rows: lines.length };
 }
