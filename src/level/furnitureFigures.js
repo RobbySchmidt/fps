@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { PALETTE } from '../rendering/palette.js';
 import { createInkMaterial } from '../rendering/toonMaterial.js';
 import { furnitureBox } from './furniture.js';
@@ -200,19 +201,33 @@ function bookcase(item, w, d, h) {
   g.add(box(wood, 0.06, 1.9, d, w / 2 - 0.03, 0.95, 0));
   g.add(box(wood, w, 0.06, d, 0, 1.87, 0));
   g.add(box(wood, w, 0.06, d, 0, 0.06, 0));
+  // Book spines: chunky varied silhouettes, deterministic by index. One box
+  // per spine would be hundreds of meshes on a wide shelf, so the spine
+  // geometries are baked in place (via translate) and merged per material
+  // instead — same spine count/size/position/color, far fewer draw calls
+  // and static-shootable entries. createInkMaterial is instance-cached, so
+  // grouping by the returned material instance is enough (see toonMaterial.js).
+  const spinesByMaterial = new Map();
   for (const y of [0.45, 0.95, 1.45]) {
     g.add(box(wood, w - 0.12, 0.045, d * 0.9, 0, y, 0));
-    // book rows: chunky varied spines, deterministic by index
     let x = -w / 2 + 0.12;
     let i = 0;
     while (x < w / 2 - 0.16) {
       const bw = 0.05 + ((i * 7) % 4) * 0.02;
       const bh = 0.24 + ((i * 5) % 3) * 0.05;
       const spine = createInkMaterial([PALETTE.rugRed, PALETTE.rugGreen, PALETTE.rugBlue, PALETTE.furnitureWalnut][i % 4], 'wood');
-      g.add(box(spine, bw, bh, Math.min(0.22, thin * 0.6), x + bw / 2, y + 0.025 + bh / 2, 0));
+      const geo = new THREE.BoxGeometry(bw, bh, Math.min(0.22, thin * 0.6));
+      geo.translate(x + bw / 2, y + 0.025 + bh / 2, 0);
+      if (!spinesByMaterial.has(spine)) spinesByMaterial.set(spine, []);
+      spinesByMaterial.get(spine).push(geo);
       x += bw + 0.015;
       i += 1;
     }
+  }
+  for (const [material, geos] of spinesByMaterial) {
+    const merged = mergeGeometries(geos);
+    geos.forEach((geo) => geo.dispose());
+    g.add(new THREE.Mesh(merged, material));
   }
   return g;
 }

@@ -70,7 +70,12 @@ export function createWandererAI({ spawn, wallSet, waypoints, config = {}, cell 
     }
   }
 
+  // Returns whether the goal is reachable: true unless this call just ran a
+  // fresh A* search (repathTimer expired) and it came back null. When the
+  // cached path is being reused (no repath this frame) it reports true —
+  // the last search that populated it already succeeded.
   function stepToward(goal, speed, dt, serpentine) {
+    let pathFound = true;
     repathTimer -= dt;
     if (repathTimer <= 0) {
       repathTimer = cfg.repathInterval;
@@ -80,6 +85,7 @@ export function createWandererAI({ spawn, wallSet, waypoints, config = {}, cell 
         wallSet,
       );
       path = route ? route.slice(1) : [];
+      pathFound = route !== null;
     }
 
     let step = path.length > 0 ? cellToWorld(path[0].c, path[0].r, cell) : goal;
@@ -91,7 +97,7 @@ export function createWandererAI({ spawn, wallSet, waypoints, config = {}, cell 
     const direction = serpentine
       ? serpentineDirection(position, step, moveTime)
       : normalize(step.x - position.x, step.z - position.z);
-    if (direction.x === 0 && direction.z === 0) return;
+    if (direction.x === 0 && direction.z === 0) return pathFound;
 
     facing = Math.atan2(direction.x, direction.z);
     position = moveWithCollision(
@@ -102,6 +108,7 @@ export function createWandererAI({ spawn, wallSet, waypoints, config = {}, cell 
       cfg.radius,
       cell,
     );
+    return pathFound;
   }
 
   function canSee(player) {
@@ -194,7 +201,17 @@ export function createWandererAI({ spawn, wallSet, waypoints, config = {}, cell 
       waypointIndex = (waypointIndex + 1) % waypoints.length;
       path = [];
     } else {
-      stepToward(waypoint, cfg.patrolSpeed, dt, false);
+      const reachable = stepToward(waypoint, cfg.patrolSpeed, dt, false);
+      if (!reachable) {
+        // A* just came back null for this waypoint (e.g. a lamp cell that
+        // slipped through level-load filtering). Move on to the next one
+        // rather than beelining through walls toward an unreachable goal;
+        // force a fresh path check next frame instead of beelining for up
+        // to a full repathInterval while the timer counts down.
+        waypointIndex = (waypointIndex + 1) % waypoints.length;
+        path = [];
+        repathTimer = 0;
+      }
     }
     return events;
   }

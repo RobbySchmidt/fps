@@ -34,6 +34,15 @@ export function expandFurniture(items, { wallSet, cols, rows, doorCells = new Se
   return { moveCells, sightCells };
 }
 
+// Lamp cells double as patrol waypoints (see mapData's 'L' legend), but a
+// lamp can legitimately sit over blocking furniture (a table lamp). Drop
+// those from the patrol route — the AI would otherwise target a cell it
+// can never stand on. Lighting itself is unaffected: callers still build a
+// light for every lamp, they just filter the waypoint list through this.
+export function reachableWaypoints(lamps, moveSet, cell) {
+  return lamps.filter((l) => !moveSet.has(`${l.x / cell},${l.z / cell}`));
+}
+
 export function furnitureBox(item, cell) {
   const h = item.height ?? FURNITURE_HEIGHTS[item.kind];
   return {

@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { createScene } from './rendering/scene.js';
 import { parseMap } from './level/mapData.js';
 import { selectLevel } from './level/levels.js';
-import { expandFurniture } from './level/furniture.js';
+import { expandFurniture, reachableWaypoints } from './level/furniture.js';
 import { buildFurniture } from './level/buildFurniture.js';
 import { buildGreybox } from './level/buildGreybox.js';
 import { buildLamps } from './level/buildLamps.js';
@@ -38,6 +38,7 @@ const { moveCells, sightCells } = expandFurniture(levelDef.furniture, {
   wallSet: parsed.wallSet,
   cols: parsed.cols,
   rows: parsed.rows,
+  doorCells: parsed.doorCells,
 });
 const moveSet = new Set([...parsed.wallSet, ...moveCells]);
 const sightSet = new Set([...parsed.wallSet, ...sightCells]);
@@ -77,7 +78,7 @@ const wandererAI = createWandererAI({
   wallSet: moveSet,
   sightSet,
   cell: levelDef.cell,
-  waypoints: parsed.lamps,
+  waypoints: reachableWaypoints(parsed.lamps, moveSet, levelDef.cell),
 });
 const wanderer = createWandererFigure();
 scene.add(wanderer.group);

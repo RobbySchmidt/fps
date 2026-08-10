@@ -1,8 +1,42 @@
 import { describe, it, expect } from 'vitest';
 import { selectLevel, MANSION, KITCHEN_TEST } from '../src/level/levels.js';
 import { parseMap } from '../src/level/mapData.js';
-import { expandFurniture } from '../src/level/furniture.js';
+import { expandFurniture, reachableWaypoints } from '../src/level/furniture.js';
 import { hasFigure, FIGURE_NAMES } from '../src/level/furnitureFigures.js';
+
+// mapData's void cells (outside-the-building gaps within a row, marked with
+// a space) aren't walls, but they aren't floor either — parseMap tracks no
+// set for them. Derive the true floor footprint from the raw map text so
+// the flood fill below doesn't mistake void for an unreachable sealed room.
+function floorCellSet(mapText) {
+  const lines = mapText.split(/\r?\n/);
+  while (lines.length && lines[0].trim() === '') lines.shift();
+  while (lines.length && lines[lines.length - 1].trim() === '') lines.pop();
+  const floor = new Set();
+  lines.forEach((line, r) => {
+    [...line].forEach((ch, c) => {
+      if (ch !== '#' && ch !== ' ') floor.add(`${c},${r}`);
+    });
+  });
+  return floor;
+}
+
+// Flood-fill from spawn over every floor cell that isn't blocking furniture.
+// If furniture ever seals a room, alcove, or doorway, some open cells become
+// unreachable from spawn and this comes back short of `open`.
+function floodFillFromSpawn(mapText, moveSet, spawnCell) {
+  const open = new Set([...floorCellSet(mapText)].filter((key) => !moveSet.has(key)));
+  const seen = new Set();
+  const stack = [spawnCell];
+  while (stack.length) {
+    const [c, r] = stack.pop();
+    const key = `${c},${r}`;
+    if (seen.has(key) || !open.has(key)) continue;
+    seen.add(key);
+    stack.push([c + 1, r], [c - 1, r], [c, r + 1], [c, r - 1]);
+  }
+  return { open, seen };
+}
 
 describe('selectLevel', () => {
   it('returns the mansion by default', () => {
@@ -152,5 +186,39 @@ describe('GROUND_FLOOR (mansion) descriptor', () => {
     for (const figure of used) {
       expect(names).toContain(figure);
     }
+  });
+
+  it('keeps every patrol waypoint off a blocking-furniture cell (regression for the wedged-patrol bug)', () => {
+    const { moveCells } = expandFurniture(MANSION.furniture, {
+      wallSet: parsed.wallSet, cols: parsed.cols, rows: parsed.rows, doorCells: parsed.doorCells,
+    });
+    const moveSet = new Set([...parsed.wallSet, ...moveCells]);
+
+    // Some lamp cells (a lamp over a table) ARE inside blocking furniture —
+    // that's fine for lighting. Prove the fixture still exercises the
+    // filter: at least one raw lamp is blocked...
+    const blockedLamps = parsed.lamps.filter((l) => moveSet.has(`${l.x / MANSION.cell},${l.z / MANSION.cell}`));
+    expect(blockedLamps.length).toBeGreaterThan(0);
+
+    // ...and reachableWaypoints (the same helper main.js uses to build the
+    // AI's patrol route) must drop every one of them.
+    const waypoints = reachableWaypoints(parsed.lamps, moveSet, MANSION.cell);
+    expect(waypoints.length).toBeGreaterThan(0);
+    for (const w of waypoints) {
+      expect(moveSet.has(`${w.x / MANSION.cell},${w.z / MANSION.cell}`), `waypoint ${w.x},${w.z} sits on blocking furniture`).toBe(false);
+    }
+  });
+
+  it('never seals a reachable cell behind furniture (flood fill from spawn covers every open cell)', () => {
+    const { moveCells } = expandFurniture(MANSION.furniture, {
+      wallSet: parsed.wallSet, cols: parsed.cols, rows: parsed.rows, doorCells: parsed.doorCells,
+    });
+    const moveSet = new Set([...parsed.wallSet, ...moveCells]);
+    const spawnCell = [parsed.spawn.x / MANSION.cell, parsed.spawn.z / MANSION.cell];
+
+    const { open, seen } = floodFillFromSpawn(MANSION.mapText, moveSet, spawnCell);
+    expect(seen.size).toBe(open.size);
+    const sealed = [...open].filter((key) => !seen.has(key));
+    expect(sealed, `sealed cells unreachable from spawn: ${sealed.join(' ')}`).toEqual([]);
   });
 });
