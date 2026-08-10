@@ -11,4 +11,7 @@ export const PALETTE = {
   impact: 0x101318,     // dark bullet mark
   wanderer: 0x0d1014,   // near-black body: reads as a silhouette with ink outlines
   wandererEye: 0xdfe8ff, // pale, cold eyes
+  furnitureWood: 0x5e4a36,  // oak table, barrels, larder shelving
+  furnitureIron: 0x3a3e46,  // cast-iron stove, hearth metalwork
+  furnitureStone: 0x555c60, // stone counter
 };
